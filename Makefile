@@ -6,10 +6,10 @@ OBJ = obj
 CXX = g++
 CXXFLAGS = -std=c++14 -O2 -Wall -Wextra -pedantic -g -I$(INC)
 
-all: main
+all: example
 
 
-main: main.cpp polynomial.hpp
+example: example.cpp polynomial.hpp
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 clean:
