@@ -1,18 +1,21 @@
 #include "z_module.hpp"
+#define PRIME_CHECK_SUPPORT
+#include "z_module_prime.hpp"
 
-int main(){
+#include <iostream>
+
+template<template<auto> typename T, auto UInt1 = 100, auto UInt2 = UInt1*2>
+void test_z_module(){
    // Construction
-   detail::ZModule<100> a(10), b(20), c(30);
+   T<UInt1> a(10), b(20), c(30);
 
    // Increment and decrement
-   ++a;
-   --a;
-   a++;
-   a--;
+   ++a;  --a;
+   a++;  a--;
 
    // Unary + and -
-   b = +a;
-   b = -b;
+   a = +b;
+   a = -b;
 
    // Arithmetic for same type +=, -= and *=
    a += b;
@@ -41,23 +44,30 @@ int main(){
    a >= 10;
 
    // Castings
-   detail::ZModule<200> d(static_cast<decltype(d)>(a));
+   T<UInt2> d(static_cast<decltype(d)>(a));
 
-   // Binary operators for same type +, - and *
+   // Binary +, - and * operators for same type
    a = b + c;
    a = b - c;
    a = b * c;
 
-   // Binary operators for different types +, - and *
-   a = b + 10;
-   a = b - 5;
-   a = b * 2;
-
-   a = 10 + b;
-   a = 5 - b;
-   a = 2 * b;
+   // Binary +, - and * operators for different types
+   a = b + 10; a = 10 + b;
+   a = b - 5;  a = 5 - b;
+   a = b * 2;  a = 2 * b;
 
    // I/O
    std::cin >> d;
    std::cout << d << std::endl;
+}
+
+template<template<auto> typename T, auto UInt1 = 101, auto UInt2 = 211>
+void test_z_module_prime(){
+   test_z_module<T, UInt1, UInt2>();
+}
+
+int main(){
+   detail::ZModulePrime<4294967291> z;
+   test_z_module<detail::ZModule>();
+   //test_z_module_prime<detail::ZModulePrime>();
 }
