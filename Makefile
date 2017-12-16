@@ -1,6 +1,7 @@
 BIN = bin
-INC = inc
-SRC = src
+INC = include
+SRC = source
+TEST = tests
 OBJ = obj
 
 CXX = g++
@@ -15,9 +16,14 @@ exe: compile
 compile: example
 	@printf "\n"
 
-example: example.cpp polynomial.hpp z_module.hpp
+example: example.cpp $(INC)/polynomial.hpp $(INC)/z_module.hpp $(SRC)/z_module.cpp
 	@echo "Compilando $@........"
 	$(CXX) $(CXXFLAGS) $< -o $@
 
+tests: $(TEST)/z_module_test
+
+$(TEST)/z_module_test: $(TEST)/z_module_test.cpp $(INC)/z_module.hpp $(SRC)/z_module.cpp
+	$(CXX) $(CXXFLAGS) $< -o $@
+
 clean:
-	rm main
+	rm example

@@ -8,9 +8,27 @@
 #include <initializer_list>   // std::initializer_list
 #include <iterator>  // std::iterator_traits
 #include <utility>   // std::move
-#include <cmath>  // std::pow()
 #include <complex>   // std::complex
+#include <cmath>  // std::pow()
+#include <cstdint>   // std::int8_t, std::int16_t, std::int32_t, std::int64_t
+
+// Boost libraries for some interesting numbers
 #include <boost/rational.hpp> // boost::rational
+
+#if defined(MULTIPRECISION_SUPPORT)
+   #include <boost/multiprecision/cpp_int.hpp>  // cpp_int, cpp_rational
+   #include <boost/multiprecision/cpp_bin_float.hpp>  // cpp_bin_float
+
+   typedef boost::multiprecision::cpp_int multiprecision_int;
+   typedef boost::multiprecision::cpp_rational multiprecision_rational;
+   typedef boost::multiprecision::cpp_bin_float<100> multiprecision_float;
+#elif defined(FAST_MULTIPRECISION_SUPPORT)
+   #include <boost/multiprecision/gmp.hpp>   // mpz_int, mpq_rational, mpf_float_100
+
+   typedef boost::multiprecision::mpz_int multiprecision_int;
+   typedef boost::multiprecision::mpq_rational multiprecision_rational;
+   typedef boost::multiprecision::mpf_float_100 multiprecision_float;
+#endif
 
 namespace detail{
 
@@ -32,7 +50,7 @@ namespace detail{
       /* Function that returns a number from 0 to 9 in superscript (if enabled
        * by the user through the UNICODE_SUPPORT macro)
        */
-      inline constexpr auto superscript (size_t n){
+      constexpr auto superscript (size_t n){
          return (n<=9) ? superscripts[n]
                   : superscripts[10];   // Any other number will return an empty string
       }
@@ -88,7 +106,7 @@ namespace detail{
          Polynomial (InputIterator first, InputIterator last, char c = 'x')
          : Polynomial(first, last, c, traits<InputIterator>()) {}
 
-         inline value_type get_coefficient (size_type i) const{
+         value_type get_coefficient (size_type i) const{
             return (i<coeffs.size()) ? coeffs[i] : static_cast<value_type>(0);
          }
 
@@ -101,26 +119,28 @@ namespace detail{
             adjust_degree();
          }
 
-         inline char get_variable () const{
+         char get_variable () const{
             return var;
          }
 
-         inline void set_variable (const char& c) {
+         void set_variable (const char& c) {
             var = c;
          }
 
-         inline size_type degree () const{
+         size_type degree () const{
             return coeffs.size()-1;
          }
 
-         /* Evaluates the polynomial for the value x. RType is the type of
-          * the evaluation
+         /* Evaluates the polynomial for the value x using the Horner's
+          * polynomial evaluation scheme.
+          *
+          * RType is the type of the evaluation
           */
          template<typename RType>
          RType evaluate_at (const RType& x) const{
-            RType res = static_cast<RType>(coeffs[0]);
-            for (size_type i=1; i<coeffs.size(); ++i){
-               res += static_cast<RType>(coeffs[i])*std::pow(x, i);
+            RType res = static_cast<RType>(coeffs.back());
+            for (size_type i=coeffs.size()-1; i>0; --i){
+               res = static_cast<RType>(coeffs[i-1]) + res*x;
             }
 
             return res;
@@ -131,16 +151,8 @@ namespace detail{
           * of the evaluation
           */
          template<typename RType>
-         inline RType operator() (const RType& x) const{
+         RType operator() (const RType& x) const{
             return (*this).evaluate_at(x);
-         }
-
-         // Swap two polynomials
-         friend void swap (Polynomial& lhs, Polynomial& rhs){
-            using std::swap;
-
-            swap(lhs.coeffs, rhs.coeffs);
-            swap(lhs.var, rhs.var);
          }
 
          // Operator overloadings for polynomials arithmetic
@@ -219,23 +231,23 @@ namespace detail{
             return *this;
          }
 
-         inline const Polynomial operator+ (const Polynomial& pol) const{
+         const Polynomial operator+ (const Polynomial& pol) const{
             return Polynomial(*this) += pol;
          }
 
-         inline const Polynomial operator- (const Polynomial& pol) const{
+         const Polynomial operator- (const Polynomial& pol) const{
             return Polynomial(*this) -= pol;
          }
 
-         inline const Polynomial operator* (const Polynomial& pol) const{
+         const Polynomial operator* (const Polynomial& pol) const{
             return Polynomial(*this) *= pol;
          }
 
-         inline const Polynomial operator/ (const Polynomial& pol) const{
+         const Polynomial operator/ (const Polynomial& pol) const{
             return Polynomial(*this) /= pol;
          }
 
-         inline const Polynomial operator% (const Polynomial& pol) const{
+         const Polynomial operator% (const Polynomial& pol) const{
             return Polynomial(*this) %= pol;
          }
 
@@ -327,6 +339,14 @@ namespace detail{
             return p.evaluate_at(upper_bound) - p.evaluate_at(lower_bound);
          }
 
+         // Swap two polynomials
+         friend void swap (Polynomial& lhs, Polynomial& rhs){
+            using std::swap;
+
+            swap(lhs.coeffs, rhs.coeffs);
+            swap(lhs.var, rhs.var);
+         }
+
          // friend std::istream& operator>>(std::istream& is, Polynomial& pol);
 
          /* Pretty print for the polynomial
@@ -335,8 +355,6 @@ namespace detail{
           * with superscript characters instead of the expresion "^n"
           */
          friend std::ostream& operator<< (std::ostream& os, const Polynomial& pol){
-            os.precision(5);  // By default, 5 decimal digits
-
             if (pol.degree() == 0){
                os << pol.get_coefficient(0);
             }
@@ -501,22 +519,39 @@ namespace detail{
    }
 
    // Typedefs for coefficients with integer types
-   typedef Polynomial<int8_t> polynomial_int8;
-   typedef Polynomial<int16_t> polynomial_int16;
-   typedef Polynomial<int32_t> polynomial_int32;
-   typedef Polynomial<int64_t> polynomial_int64;
+   typedef Polynomial<std::int8_t> polynomial_int8;
+   typedef Polynomial<std::int16_t> polynomial_int16;
+   typedef Polynomial<std::int32_t> polynomial_int32;
+   typedef Polynomial<std::int64_t> polynomial_int64;
 
    // Typedefs for coefficients in floating point (real numbers)
-   typedef Polynomial<float> polynomial_float32;
-   typedef Polynomial<double> polynomial_float64;
+   typedef Polynomial<float> polynomial_float;
+   typedef Polynomial<double> polynomial_double;
+   typedef Polynomial<long double> polynomial_long_double;
 
    // Typedefs for extra types (boost::rational and std::complex)
-   typedef Polynomial<boost::rational<int8_t>> polynomial_rational_int8;
-   typedef Polynomial<boost::rational<int16_t>> polynomial_rational_int16;
-   typedef Polynomial<boost::rational<int32_t>> polynomial_rational_int32;
-   typedef Polynomial<boost::rational<int64_t>> polynomial_rational_int64;
+   typedef Polynomial<boost::rational<std::int8_t>> polynomial_rational_int8;
+   typedef Polynomial<boost::rational<std::int16_t>> polynomial_rational_int16;
+   typedef Polynomial<boost::rational<std::int32_t>> polynomial_rational_int32;
+   typedef Polynomial<boost::rational<std::int64_t>> polynomial_rational_int64;
 
    typedef Polynomial<std::complex<float>> polynomial_complex_float;
    typedef Polynomial<std::complex<double>> polynomial_complex_double;
+   typedef Polynomial<std::complex<long double>> polynomial_complex_long_double;
+
+   /* Typedefs for multiprecision polynomial using boost multiprecision
+    * library or fast multiprecision using gmp library
+    */
+#if defined(MULTIPRECISION_SUPPORT) || defined(FAST_MULTIPRECISION_SUPPORT)
+   typedef Polynomial<multiprecision_int> polynomial_multiprecision_int;
+   typedef Polynomial<multiprecision_rational> polynomial_multiprecision_rational;
+   typedef Polynomial<multiprecision_float> polynomial_multiprecision_float;
+   typedef Polynomial<std::complex<multiprecision_float>> polynomial_multiprecision_complex;
+#endif
+
+   template<auto N>
+   using polynomial_modular = Polynomial<ZModule<N>>;
+   template<auto N>
+   using polynomial_modular_prime = Polynomial<ZModulePrime<N>>;
 
 }  // namespace detail
