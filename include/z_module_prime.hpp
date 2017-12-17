@@ -6,9 +6,9 @@
 #include <type_traits>
 
 namespace detail::aux{
-   /* Primality test for compile time evaluation
+   /* Primality test for compile-time evaluation
     *
-    * Source code taken from Casey's answer in Stack Overflow:
+    * Source code taken from Casey's answer at Stack Overflow:
     * https://stackoverflow.com/questions/18303632/compile-time-prime-checking
     */
    #ifdef PRIME_CHECK_SUPPORT // Activation via macro
@@ -81,28 +81,27 @@ namespace detail{
          typedef typename ZModule<UInt>::value_type value_type;
          static constexpr value_type N = static_cast<value_type>(UInt);
 
-         ZModulePrime (const value_type& zm = 0) : ZModule<UInt>(zm){}
+         ZModulePrime (const value_type& zm = 0);
 
-         ZModulePrime& operator/= (const ZModulePrime& zm){
-            this->n = ((this->n)*inverse(zm))%N;
-            return *this;
-         }
+         ZModulePrime& operator/= (const ZModulePrime& zm);
+         template<typename U>
+         ZModulePrime& operator/= (const U& other);
 
-         ZModulePrime operator/ (const ZModulePrime& zm) const{
-            return ZModulePrime(*this) /= zm;
-         }
-
-         const value_type inverse(){
-            // TODO: Use Extended Euclidean algorithm
-            value_type ret=1;
-            while (((this->n)*ret)%N != 1) ++ret;
-            return ret;
-         }
+         auto inverse() const;
 
          // Conversion to another integer ring (must use static_cast<>())
          template<auto UInt2>
-         operator ZModulePrime<UInt2>() const{
-            return ZModulePrime<UInt2>(this->n);
-         }
+         explicit operator ZModulePrime<UInt2>() const;
    };
+
+   template<auto UInt>
+   ZModulePrime<UInt> operator/ (const ZModulePrime<UInt>& lhs, const ZModulePrime<UInt>& rhs);
+
+   template<auto UInt, typename U>
+   ZModulePrime<UInt> operator/ (const ZModulePrime<UInt>& lhs, const U& rhs);
+   template<auto UInt, typename U>
+   ZModulePrime<UInt> operator/ (const U& lhs, const ZModulePrime<UInt>& rhs);
+
+
+   #include "../source/z_module_prime.cpp"
 }

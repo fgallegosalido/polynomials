@@ -1,5 +1,4 @@
 #include "z_module.hpp"
-#define PRIME_CHECK_SUPPORT
 #include "z_module_prime.hpp"
 
 #include <iostream>
@@ -67,7 +66,6 @@ void test_z_module_prime(){
 }
 
 int main(){
-   detail::ZModulePrime<4294967291> z;
    test_z_module<detail::ZModule>();
    //test_z_module_prime<detail::ZModulePrime>();
 }

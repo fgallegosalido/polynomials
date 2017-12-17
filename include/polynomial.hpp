@@ -50,7 +50,7 @@ namespace detail{
       /* Function that returns a number from 0 to 9 in superscript (if enabled
        * by the user through the UNICODE_SUPPORT macro)
        */
-      constexpr auto superscript (size_t n){
+      constexpr auto superscript (std::size_t n){
          return (n<=9) ? superscripts[n]
                   : superscripts[10];   // Any other number will return an empty string
       }

@@ -5,7 +5,7 @@ TEST = tests
 OBJ = obj
 
 CXX = g++
-CXXFLAGS = -std=c++17 -O2 -Wall -Wextra -pedantic -g -I$(INC) -ftemplate-depth=65536
+CXXFLAGS = -std=c++17 -O2 -Wall -Wextra -pedantic -g -I$(INC)
 
 all: compile exe
 
@@ -16,7 +16,7 @@ exe: compile
 compile: example
 	@printf "\n"
 
-example: example.cpp $(INC)/polynomial.hpp $(INC)/z_module.hpp $(SRC)/z_module.cpp
+example: example.cpp $(INC)/polynomial.hpp $(INC)/z_module.hpp $(INC)/z_module_primes.hpp $(SRC)/z_module.cpp $(SRC)/z_module_prime.cpp
 	@echo "Compilando $@........"
 	$(CXX) $(CXXFLAGS) $< -o $@
 
@@ -26,4 +26,4 @@ $(TEST)/z_module_test: $(TEST)/z_module_test.cpp $(INC)/z_module.hpp $(SRC)/z_mo
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 clean:
-	rm example
+	rm example $(TEST)/z_module_test

@@ -181,7 +181,7 @@ ZModule<UInt> operator+ (const U& lhs, const ZModule<UInt>& rhs){
 }
 template<auto UInt, typename U>
 ZModule<UInt> operator- (const U& lhs, const ZModule<UInt>& rhs){
-   return ZModule<UInt>(rhs) -= static_cast<typename ZModule<UInt>::value_type>(lhs);
+   return ZModule<UInt>(static_cast<typename ZModule<UInt>::value_type>(lhs)) -= rhs;
 }
 template<auto UInt, typename U>
 ZModule<UInt> operator* (const U& lhs, const ZModule<UInt>& rhs){
