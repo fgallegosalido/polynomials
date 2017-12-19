@@ -71,64 +71,6 @@ ZModule<UInt>& ZModule<UInt>::operator*= (const U& other){
 }
 
 
-/****************************************************************************/
-/************* Operators ==, !=, <, <=, > and >= for same type **************/
-/****************************************************************************/
-template<auto UInt>
-bool ZModule<UInt>::operator== (const ZModule<UInt>& zm) const{
-   return n == zm.n;
-}
-template<auto UInt>
-bool ZModule<UInt>::operator!= (const ZModule<UInt>& zm) const{
-   return n != zm.n;
-}
-template<auto UInt>
-bool ZModule<UInt>::operator< (const ZModule<UInt>& zm) const{
-   return n < zm.n;
-}
-template<auto UInt>
-bool ZModule<UInt>::operator<= (const ZModule<UInt>& zm) const{
-   return n <= zm.n;
-}
-template<auto UInt>
-bool ZModule<UInt>::operator> (const ZModule<UInt>& zm) const{
-   return n > zm.n;
-}
-template<auto UInt>
-bool ZModule<UInt>::operator>= (const ZModule<UInt>& zm) const{
-   return n >= zm.n;
-}
-
-
-/*****************************************************************************/
-/*********** Operators ==, !=, <, <=, > and >= for different type ************/
-/*****************************************************************************/
-template<auto UInt> template<typename U>
-bool ZModule<UInt>::operator== (const U& other) const{
-   return n == static_cast<value_type>(other);
-}
-template<auto UInt> template<typename U>
-bool ZModule<UInt>::operator!= (const U& other) const{
-   return n != static_cast<value_type>(other);
-}
-template<auto UInt> template<typename U>
-bool ZModule<UInt>::operator< (const U& other) const{
-   return n < static_cast<value_type>(other);
-}
-template<auto UInt> template<typename U>
-bool ZModule<UInt>::operator<= (const U& other) const{
-   return n <= static_cast<value_type>(other);
-}
-template<auto UInt> template<typename U>
-bool ZModule<UInt>::operator> (const U& other) const{
-   return n > static_cast<value_type>(other);
-}
-template<auto UInt> template<typename U>
-bool ZModule<UInt>::operator>= (const U& other) const{
-   return n >= static_cast<value_type>(other);
-}
-
-
 /*********************************************************************/
 /************** Castings to value_type or other ZModule **************/
 /*********************************************************************/

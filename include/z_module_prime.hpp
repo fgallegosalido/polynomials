@@ -120,4 +120,5 @@ namespace detail{
    // Implementations of all the functions
    #include "../source/z_module_prime.cpp"
    #include "../source/z_module_arithmetics.cpp"
+   #include "../source/z_module_comparisons.cpp"
 }

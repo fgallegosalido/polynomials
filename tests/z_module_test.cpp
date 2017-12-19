@@ -37,12 +37,12 @@ void test_z_module(){
    a >= b;
 
    // Comparison for different types ==, !=, <, <=, > and >=
-   a == 10;
-   a != 10;
-   a < 10;
-   a <= 10;
-   a > 10;
-   a >= 10;
+   a == 10; 10 == a;
+   a != 10; 10 != a;
+   a < 10;  10 < a;
+   a <= 10; 10 <= a;
+   a > 10;  10 > a;
+   a >= 10; 10 >= a;
 
    // Castings
    T<UInt2> d(static_cast<decltype(d)>(a));
