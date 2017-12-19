@@ -1,8 +1,10 @@
 #define UNICODE_SUPPORT
+#define Z_MODULE_SUPPORT
 #define MULTIPRECISION_SUPPORT
 //#define FAST_MULTIPRECISION_SUPPORT
 
 #include "polynomial.hpp"
+
 #include <iostream>
 #include <vector>
 
@@ -54,12 +56,15 @@ int main(){
    std::cout << "-----------" << std::endl;
 
    detail::ZModulePrime<98773> x1(346), x2(300);
-   std::cout << "Inverse of " << ++x1 << " module 98773" << ": " << x1.inverse() << std::endl;
+   std::cout << "Inverse of " << ++x1 << " module 98773" << ": " << 1 / x1 << std::endl;
    std::cout << "-----------" << std::endl;
 
    detail::ZModulePrime<33> y = static_cast<detail::ZModulePrime<33>>(x1);
-   std::cout << "Inverse of " << y << " module 33" << ": " << y.inverse() << std::endl;
+   std::cout << "Inverse of " << y << " module 33" << ": " << 1 / y << std::endl;
    std::cout << "-----------" << std::endl;
 
    x1 = x1 + x2;
+
+   detail::polynomial_modular_prime<109> p_mod = {1, 2, 3, 110};
+   std::cout << p_mod << std::endl;
 }

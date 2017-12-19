@@ -11,10 +11,10 @@
 #include <cmath>  // std::pow()
 #include <cstdint>   // std::int8_t, std::int16_t, std::int32_t, std::int64_t
 
-// Library for Z-module sets
+// Library for Z-module rings and fields
 #ifdef Z_MODULE_SUPPORT
-   #include "z_module.hpp"
-   #include "z_module_prime.cpp"
+   #include "z_module.hpp" // detail::ZModule
+   #include "z_module_prime.hpp" // detail::ZModulePrime
 #endif
 
 // Boost libraries for some interesting number types
@@ -326,7 +326,7 @@ namespace detail{
                else if (pol.get_coefficient(pol.degree()) != 1){
                   os << pol.get_coefficient(pol.degree());
                }
-               os << pol.get_variable() << aux::exponent(pol.degree());
+               os << pol.get_variable() << aux::exponent_string(pol.degree());
 
                for (size_type i=pol.degree()-1; i>0; --i){
                   if (pol.get_coefficient(i) != 0){
@@ -341,7 +341,7 @@ namespace detail{
                         os << "-";
                      }
 
-                     os << pol.get_variable() << aux::exponent(i);
+                     os << pol.get_variable() << aux::exponent_string(i);
                   }
                }
 
