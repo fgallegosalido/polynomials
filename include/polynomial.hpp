@@ -1,6 +1,8 @@
 #pragma once
 
 #include "z_module.hpp"
+#define PRIME_CHECK_SUPPORT
+#include "z_module_prime.cpp"
 
 #include <iostream>  // std::cout, std::cin, std::endl
 #include <vector> // std::vector
@@ -12,8 +14,10 @@
 #include <cmath>  // std::pow()
 #include <cstdint>   // std::int8_t, std::int16_t, std::int32_t, std::int64_t
 
-// Boost libraries for some interesting numbers
-#include <boost/rational.hpp> // boost::rational
+// Boost libraries for some interesting number types
+#ifdef RATIONAL_SUPPORT
+   #include <boost/rational.hpp> // boost::rational
+#endif
 
 #if defined(MULTIPRECISION_SUPPORT)
    #include <boost/multiprecision/cpp_int.hpp>  // cpp_int, cpp_rational
@@ -62,16 +66,16 @@ namespace detail{
       std::string power_string (unsigned  n){
          std::string power = "";
 
-   #ifdef UNICODE_SUPPORT
+      #ifdef UNICODE_SUPPORT
          if (n==1 || n==0) return power;
 
          while (n>0){
             power = superscript(n%10) + power;
             n /= 10;
          }
-   #else
+      #else
          power = "^" + std::to_string(n);
-   #endif
+      #endif
 
          return power;
       }
@@ -530,10 +534,12 @@ namespace detail{
    typedef Polynomial<long double> polynomial_long_double;
 
    // Typedefs for extra types (boost::rational and std::complex)
+#ifdef RATIONAL_SUPPORT
    typedef Polynomial<boost::rational<std::int8_t>> polynomial_rational_int8;
    typedef Polynomial<boost::rational<std::int16_t>> polynomial_rational_int16;
    typedef Polynomial<boost::rational<std::int32_t>> polynomial_rational_int32;
    typedef Polynomial<boost::rational<std::int64_t>> polynomial_rational_int64;
+#endif
 
    typedef Polynomial<std::complex<float>> polynomial_complex_float;
    typedef Polynomial<std::complex<double>> polynomial_complex_double;

@@ -1,8 +1,7 @@
 #pragma once
 
-#include <iostream>
-#include <type_traits>
-#include <cmath>
+#include <iostream>  // std::istream, std::ostream
+#include <type_traits>  // std::make_unsigned_t
 
 namespace detail{
 
@@ -11,9 +10,12 @@ namespace detail{
 
       public:
 
+         // Typedef for the value_type. We want it to be unsigned
          typedef std::make_unsigned_t<decltype(UInt)> value_type;
+         // Variable holding the cardinal of the ring
          static constexpr value_type N = static_cast<value_type>(UInt);
 
+         // Constructor by value
          ZModule (const value_type& zm = 0);
 
          // Increment and decrement operators
@@ -21,10 +23,6 @@ namespace detail{
          ZModule& operator-- ();
          ZModule operator++ (int);
          ZModule operator-- (int);
-
-         // Unary + and - operators
-         ZModule operator+ () const;
-         ZModule operator- () const;
 
          // Operator overloadings for modular arithmetic
          ZModule& operator+= (const ZModule& zm);
@@ -84,6 +82,12 @@ namespace detail{
          value_type n;
    };
 
+   // Unary + and - operators
+   template<auto UInt>
+   ZModule<UInt> operator+ (const ZModule<UInt>& rhs);
+   template<auto UInt>
+   ZModule<UInt> operator- (const ZModule<UInt>& rhs);
+
    // Binary +, - and * operators for same type
    template<auto UInt>
    ZModule<UInt> operator+ (const ZModule<UInt>& lhs, const ZModule<UInt>& rhs);
@@ -108,5 +112,7 @@ namespace detail{
    ZModule<UInt> operator* (const U& lhs, const ZModule<UInt>& rhs);
 
 
-   #include "../source/z_module.cpp"   // Implementation
+   // Implementations of all the functions
+   #include "../source/z_module.cpp"
+   #include "../source/z_module_arithmetics.cpp"
 }

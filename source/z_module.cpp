@@ -31,19 +31,6 @@ ZModule<UInt> ZModule<UInt>::operator-- (int){
 }
 
 
-/***************************************************/
-/*********** Unary + and - operators ***************/
-/***************************************************/
-template<auto UInt>
-ZModule<UInt> ZModule<UInt>::operator+ () const{
-   return ZModule<UInt>(n);
-}
-template<auto UInt>
-ZModule<UInt> ZModule<UInt>::operator- () const{
-   return ZModule<UInt>(N-n);
-}
-
-
 /***************************************************************/
 /************* Operators +=, -=, *= for same type **************/
 /***************************************************************/
@@ -139,53 +126,6 @@ bool ZModule<UInt>::operator> (const U& other) const{
 template<auto UInt> template<typename U>
 bool ZModule<UInt>::operator>= (const U& other) const{
    return n >= static_cast<value_type>(other);
-}
-
-
-/************************************************************************/
-/*************** Binary operators +, -, * for same type *****************/
-/************************************************************************/
-template<auto UInt>
-ZModule<UInt> operator+ (const ZModule<UInt>& lhs, const ZModule<UInt>& rhs){
-   return ZModule<UInt>(lhs) += rhs;
-}
-template<auto UInt>
-ZModule<UInt> operator- (const ZModule<UInt>& lhs, const ZModule<UInt>& rhs){
-   return ZModule<UInt>(lhs) -= rhs;
-}
-template<auto UInt>
-ZModule<UInt> operator* (const ZModule<UInt>& lhs, const ZModule<UInt>& rhs){
-   return ZModule<UInt>(lhs) *= rhs;
-}
-
-
-/*****************************************************************************/
-/*************** Binary operators +, -, * for different types ****************/
-/*****************************************************************************/
-template<auto UInt, typename U>
-ZModule<UInt> operator+ (const ZModule<UInt>& lhs, const U& rhs){
-   return ZModule<UInt>(lhs) += static_cast<typename ZModule<UInt>::value_type>(rhs);
-}
-template<auto UInt, typename U>
-ZModule<UInt> operator- (const ZModule<UInt>& lhs, const U& rhs){
-   return ZModule<UInt>(lhs) -= static_cast<typename ZModule<UInt>::value_type>(rhs);
-}
-template<auto UInt, typename U>
-ZModule<UInt> operator* (const ZModule<UInt>& lhs, const U& rhs){
-   return ZModule<UInt>(lhs) *= static_cast<typename ZModule<UInt>::value_type>(rhs);
-}
-/*------------------------------------------*/
-template<auto UInt, typename U>
-ZModule<UInt> operator+ (const U& lhs, const ZModule<UInt>& rhs){
-   return ZModule<UInt>(rhs) += static_cast<typename ZModule<UInt>::value_type>(lhs);
-}
-template<auto UInt, typename U>
-ZModule<UInt> operator- (const U& lhs, const ZModule<UInt>& rhs){
-   return ZModule<UInt>(static_cast<typename ZModule<UInt>::value_type>(lhs)) -= rhs;
-}
-template<auto UInt, typename U>
-ZModule<UInt> operator* (const U& lhs, const ZModule<UInt>& rhs){
-   return ZModule<UInt>(rhs) *= static_cast<typename ZModule<UInt>::value_type>(lhs);
 }
 
 

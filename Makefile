@@ -16,13 +16,13 @@ exe: compile
 compile: example
 	@printf "\n"
 
-example: example.cpp $(INC)/polynomial.hpp $(INC)/z_module.hpp $(INC)/z_module_primes.hpp $(SRC)/z_module.cpp $(SRC)/z_module_prime.cpp
+example: example.cpp $(INC)/polynomial.hpp $(INC)/z_module.hpp $(INC)/z_module_prime.hpp $(SRC)/z_module.cpp $(SRC)/z_module_prime.cpp $(SRC)/z_module_arithmetics.cpp
 	@echo "Compilando $@........"
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 tests: $(TEST)/z_module_test
 
-$(TEST)/z_module_test: $(TEST)/z_module_test.cpp $(INC)/z_module.hpp $(SRC)/z_module.cpp
+$(TEST)/z_module_test: $(TEST)/z_module_test.cpp $(INC)/z_module.hpp $(INC)/z_module_prime.hpp $(SRC)/z_module.cpp $(SRC)/z_module_prime.cpp $(SRC)/z_module_arithmetics.cpp
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 clean:

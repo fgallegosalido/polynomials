@@ -1,8 +1,10 @@
 #include "z_module.hpp"
+#define PRIME_CHECK_SUPPORT
 #include "z_module_prime.hpp"
 
 #include <iostream>
 
+// Function to check correctness of ZModule class
 template<template<auto> typename T, auto UInt1 = 100, auto UInt2 = UInt1*2>
 void test_z_module(){
    // Construction
@@ -56,16 +58,33 @@ void test_z_module(){
    a = b * 2;  a = 2 * b;
 
    // I/O
-   std::cin >> d;
-   std::cout << d << std::endl;
+   T<UInt2> e;
+   std::cout << "Testing input. Type a number -> ";
+   std::cin >> e;
+   std::cout << "The typed number is " << e << " in Z" << UInt2 << std::endl;
 }
 
+// Function to check correctness of ZModulePrime class
 template<template<auto> typename T, auto UInt1 = 101, auto UInt2 = 211>
 void test_z_module_prime(){
    test_z_module<T, UInt1, UInt2>();
+
+   T<UInt1> a(10), b(20), c(30);
+
+   // Unary /= operator for same and different types
+   a /= b;
+   a /= 5;
+
+   // Casting
+   T<UInt2> d(static_cast<decltype(d)>(a));
+
+   // Binary / operator for same and different types
+   a = b / c;
+   a = b / 10;
+   a = 10 / b;
 }
 
 int main(){
    test_z_module<detail::ZModule>();
-   //test_z_module_prime<detail::ZModulePrime>();
+   test_z_module_prime<detail::ZModulePrime>();
 }
