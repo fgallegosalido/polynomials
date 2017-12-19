@@ -6,7 +6,7 @@
 #include <iostream>
 
 // Function to check correctness of ZModule class
-template<template<auto> typename T, auto UInt1 = 100, auto UInt2 = UInt1*2>
+template<template<auto> typename T, auto UInt1 = 1234, auto UInt2 = UInt1*2>
 void test_z_module(){
    // Name of the class
    std::cout << T<UInt1>::name() << std::endl;
@@ -63,13 +63,13 @@ void test_z_module(){
 
    // I/O
    T<UInt2> e;
-   std::cout << "Testing input. Type a number -> ";
+   std::cout << "Testing input....\n";
    std::cin >> e;
    std::cout << "The typed number is " << e << " in " << T<UInt2>::name() << std::endl;
 }
 
 // Function to check correctness of ZModulePrime class
-template<template<auto> typename T, auto UInt1 = 101, auto UInt2 = 211>
+template<template<auto> typename T, auto UInt1 = 1367, auto UInt2 = 5683>
 void test_z_module_prime(){
    test_z_module<T, UInt1, UInt2>();
 
@@ -86,6 +86,13 @@ void test_z_module_prime(){
    a = b / c;
    a = b / 10;
    a = 10 / b;
+
+   // Exception test
+   std::cout << "\n/************************************/\n"
+             <<   " Testing exception for divide by zero"
+             << "\n/************************************/\n"
+             << std::flush;
+   a /= 0;
 }
 
 int main(){

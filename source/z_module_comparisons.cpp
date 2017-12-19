@@ -13,32 +13,32 @@
 /************* Operators ==, !=, <, <=, > and >= for same type **************/
 /****************************************************************************/
 template<auto UInt>
-bool operator== (const Z_MODULE_TYPE<UInt>& lhs, const Z_MODULE_TYPE<UInt>& rhs){
+constexpr bool operator== (const Z_MODULE_TYPE<UInt>& lhs, const Z_MODULE_TYPE<UInt>& rhs){
    return static_cast<typename Z_MODULE_TYPE<UInt>::value_type>(lhs) ==
             static_cast<typename Z_MODULE_TYPE<UInt>::value_type>(rhs);
 }
 template<auto UInt>
-bool operator!= (const Z_MODULE_TYPE<UInt>& lhs, const Z_MODULE_TYPE<UInt>& rhs){
+constexpr bool operator!= (const Z_MODULE_TYPE<UInt>& lhs, const Z_MODULE_TYPE<UInt>& rhs){
    return static_cast<typename Z_MODULE_TYPE<UInt>::value_type>(lhs) !=
             static_cast<typename Z_MODULE_TYPE<UInt>::value_type>(rhs);
 }
 template<auto UInt>
-bool operator< (const Z_MODULE_TYPE<UInt>& lhs, const Z_MODULE_TYPE<UInt>& rhs){
+constexpr bool operator< (const Z_MODULE_TYPE<UInt>& lhs, const Z_MODULE_TYPE<UInt>& rhs){
    return static_cast<typename Z_MODULE_TYPE<UInt>::value_type>(lhs) <
             static_cast<typename Z_MODULE_TYPE<UInt>::value_type>(rhs);
 }
 template<auto UInt>
-bool operator<= (const Z_MODULE_TYPE<UInt>& lhs, const Z_MODULE_TYPE<UInt>& rhs){
+constexpr bool operator<= (const Z_MODULE_TYPE<UInt>& lhs, const Z_MODULE_TYPE<UInt>& rhs){
    return static_cast<typename Z_MODULE_TYPE<UInt>::value_type>(lhs) <=
             static_cast<typename Z_MODULE_TYPE<UInt>::value_type>(rhs);
 }
 template<auto UInt>
-bool operator> (const Z_MODULE_TYPE<UInt>& lhs, const Z_MODULE_TYPE<UInt>& rhs){
+constexpr bool operator> (const Z_MODULE_TYPE<UInt>& lhs, const Z_MODULE_TYPE<UInt>& rhs){
    return static_cast<typename Z_MODULE_TYPE<UInt>::value_type>(lhs) >
             static_cast<typename Z_MODULE_TYPE<UInt>::value_type>(rhs);
 }
 template<auto UInt>
-bool operator>= (const Z_MODULE_TYPE<UInt>& lhs, const Z_MODULE_TYPE<UInt>& rhs){
+constexpr bool operator>= (const Z_MODULE_TYPE<UInt>& lhs, const Z_MODULE_TYPE<UInt>& rhs){
    return static_cast<typename Z_MODULE_TYPE<UInt>::value_type>(lhs) >=
             static_cast<typename Z_MODULE_TYPE<UInt>::value_type>(rhs);
 }
@@ -48,51 +48,51 @@ bool operator>= (const Z_MODULE_TYPE<UInt>& lhs, const Z_MODULE_TYPE<UInt>& rhs)
 /*********** Operators ==, !=, <, <=, > and >= for different type ************/
 /*****************************************************************************/
 template<auto UInt, typename U>
-bool operator== (const Z_MODULE_TYPE<UInt>& lhs, const U& rhs){
+constexpr bool operator== (const Z_MODULE_TYPE<UInt>& lhs, const U& rhs){
    return lhs == Z_MODULE_TYPE<UInt>(static_cast<typename Z_MODULE_TYPE<UInt>::value_type>(rhs));
 }
 template<auto UInt, typename U>
-bool operator!= (const Z_MODULE_TYPE<UInt>& lhs, const U& rhs){
+constexpr bool operator!= (const Z_MODULE_TYPE<UInt>& lhs, const U& rhs){
    return lhs != Z_MODULE_TYPE<UInt>(static_cast<typename Z_MODULE_TYPE<UInt>::value_type>(rhs));
 }
 template<auto UInt, typename U>
-bool operator< (const Z_MODULE_TYPE<UInt>& lhs, const U& rhs){
+constexpr bool operator< (const Z_MODULE_TYPE<UInt>& lhs, const U& rhs){
    return lhs < Z_MODULE_TYPE<UInt>(static_cast<typename Z_MODULE_TYPE<UInt>::value_type>(rhs));
 }
 template<auto UInt, typename U>
-bool operator<= (const Z_MODULE_TYPE<UInt>& lhs, const U& rhs){
+constexpr bool operator<= (const Z_MODULE_TYPE<UInt>& lhs, const U& rhs){
    return lhs <= Z_MODULE_TYPE<UInt>(static_cast<typename Z_MODULE_TYPE<UInt>::value_type>(rhs));
 }
 template<auto UInt, typename U>
-bool operator> (const Z_MODULE_TYPE<UInt>& lhs, const U& rhs){
+constexpr bool operator> (const Z_MODULE_TYPE<UInt>& lhs, const U& rhs){
    return lhs > Z_MODULE_TYPE<UInt>(static_cast<typename Z_MODULE_TYPE<UInt>::value_type>(rhs));
 }
 template<auto UInt, typename U>
-bool operator>= (const Z_MODULE_TYPE<UInt>& lhs, const U& rhs){
+constexpr bool operator>= (const Z_MODULE_TYPE<UInt>& lhs, const U& rhs){
    return lhs >= Z_MODULE_TYPE<UInt>(static_cast<typename Z_MODULE_TYPE<UInt>::value_type>(rhs));
 }
 /*------------------------------------------*/
 template<auto UInt, typename U>
-bool operator== (const U& lhs, const Z_MODULE_TYPE<UInt>& rhs){
+constexpr bool operator== (const U& lhs, const Z_MODULE_TYPE<UInt>& rhs){
    return Z_MODULE_TYPE<UInt>(static_cast<typename Z_MODULE_TYPE<UInt>::value_type>(lhs)) == rhs;
 }
 template<auto UInt, typename U>
-bool operator!= (const U& lhs, const Z_MODULE_TYPE<UInt>& rhs){
+constexpr bool operator!= (const U& lhs, const Z_MODULE_TYPE<UInt>& rhs){
    return Z_MODULE_TYPE<UInt>(static_cast<typename Z_MODULE_TYPE<UInt>::value_type>(lhs)) != rhs;
 }
 template<auto UInt, typename U>
-bool operator< (const U& lhs, const Z_MODULE_TYPE<UInt>& rhs){
+constexpr bool operator< (const U& lhs, const Z_MODULE_TYPE<UInt>& rhs){
    return Z_MODULE_TYPE<UInt>(static_cast<typename Z_MODULE_TYPE<UInt>::value_type>(lhs)) < rhs;
 }
 template<auto UInt, typename U>
-bool operator<= (const U& lhs, const Z_MODULE_TYPE<UInt>& rhs){
+constexpr bool operator<= (const U& lhs, const Z_MODULE_TYPE<UInt>& rhs){
    return Z_MODULE_TYPE<UInt>(static_cast<typename Z_MODULE_TYPE<UInt>::value_type>(lhs)) <= rhs;
 }
 template<auto UInt, typename U>
-bool operator> (const U& lhs, const Z_MODULE_TYPE<UInt>& rhs){
+constexpr bool operator> (const U& lhs, const Z_MODULE_TYPE<UInt>& rhs){
    return Z_MODULE_TYPE<UInt>(static_cast<typename Z_MODULE_TYPE<UInt>::value_type>(lhs)) > rhs;
 }
 template<auto UInt, typename U>
-bool operator>= (const U& lhs, const Z_MODULE_TYPE<UInt>& rhs){
+constexpr bool operator>= (const U& lhs, const Z_MODULE_TYPE<UInt>& rhs){
    return Z_MODULE_TYPE<UInt>(static_cast<typename Z_MODULE_TYPE<UInt>::value_type>(lhs)) >= rhs;
 }

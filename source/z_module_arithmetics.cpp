@@ -13,11 +13,11 @@
 /*********** Unary + and - operators ***************/
 /***************************************************/
 template<auto UInt>
-Z_MODULE_TYPE<UInt> operator+ (const Z_MODULE_TYPE<UInt>& rhs){
+constexpr Z_MODULE_TYPE<UInt> operator+ (const Z_MODULE_TYPE<UInt>& rhs){
    return Z_MODULE_TYPE<UInt>(rhs);
 }
 template<auto UInt>
-Z_MODULE_TYPE<UInt> operator- (const Z_MODULE_TYPE<UInt>& rhs){
+constexpr Z_MODULE_TYPE<UInt> operator- (const Z_MODULE_TYPE<UInt>& rhs){
    return Z_MODULE_TYPE<UInt>(Z_MODULE_TYPE<UInt>::N -
       static_cast<typename Z_MODULE_TYPE<UInt>::value_type>(rhs));
 }
@@ -27,19 +27,19 @@ Z_MODULE_TYPE<UInt> operator- (const Z_MODULE_TYPE<UInt>& rhs){
 /*************** Binary operators +, -, * for same type *****************/
 /************************************************************************/
 template<auto UInt>
-Z_MODULE_TYPE<UInt> operator+ (const Z_MODULE_TYPE<UInt>& lhs, const Z_MODULE_TYPE<UInt>& rhs){
+constexpr Z_MODULE_TYPE<UInt> operator+ (const Z_MODULE_TYPE<UInt>& lhs, const Z_MODULE_TYPE<UInt>& rhs){
    Z_MODULE_TYPE<UInt> ret(lhs);
    ret += rhs;
    return ret;
 }
 template<auto UInt>
-Z_MODULE_TYPE<UInt> operator- (const Z_MODULE_TYPE<UInt>& lhs, const Z_MODULE_TYPE<UInt>& rhs){
+constexpr Z_MODULE_TYPE<UInt> operator- (const Z_MODULE_TYPE<UInt>& lhs, const Z_MODULE_TYPE<UInt>& rhs){
    Z_MODULE_TYPE<UInt> ret(lhs);
    ret -= rhs;
    return ret;
 }
 template<auto UInt>
-Z_MODULE_TYPE<UInt> operator* (const Z_MODULE_TYPE<UInt>& lhs, const Z_MODULE_TYPE<UInt>& rhs){
+constexpr Z_MODULE_TYPE<UInt> operator* (const Z_MODULE_TYPE<UInt>& lhs, const Z_MODULE_TYPE<UInt>& rhs){
    Z_MODULE_TYPE<UInt> ret(lhs);
    ret *= rhs;
    return ret;
@@ -50,38 +50,38 @@ Z_MODULE_TYPE<UInt> operator* (const Z_MODULE_TYPE<UInt>& lhs, const Z_MODULE_TY
 /*************** Binary operators +, -, * for different types ****************/
 /*****************************************************************************/
 template<auto UInt, typename U>
-Z_MODULE_TYPE<UInt> operator+ (const Z_MODULE_TYPE<UInt>& lhs, const U& rhs){
+constexpr Z_MODULE_TYPE<UInt> operator+ (const Z_MODULE_TYPE<UInt>& lhs, const U& rhs){
    Z_MODULE_TYPE<UInt> ret(lhs);
    ret += rhs;
    return ret;
 }
 template<auto UInt, typename U>
-Z_MODULE_TYPE<UInt> operator- (const Z_MODULE_TYPE<UInt>& lhs, const U& rhs){
+constexpr Z_MODULE_TYPE<UInt> operator- (const Z_MODULE_TYPE<UInt>& lhs, const U& rhs){
    Z_MODULE_TYPE<UInt> ret(lhs);
    ret -= rhs;
    return ret;
 }
 template<auto UInt, typename U>
-Z_MODULE_TYPE<UInt> operator* (const Z_MODULE_TYPE<UInt>& lhs, const U& rhs){
+constexpr Z_MODULE_TYPE<UInt> operator* (const Z_MODULE_TYPE<UInt>& lhs, const U& rhs){
    Z_MODULE_TYPE<UInt> ret(lhs);
    ret *= rhs;
    return ret;
 }
 /*------------------------------------------*/
 template<auto UInt, typename U>
-Z_MODULE_TYPE<UInt> operator+ (const U& lhs, const Z_MODULE_TYPE<UInt>& rhs){
+constexpr Z_MODULE_TYPE<UInt> operator+ (const U& lhs, const Z_MODULE_TYPE<UInt>& rhs){
    Z_MODULE_TYPE<UInt> ret(rhs);
    ret += lhs;
    return ret;
 }
 template<auto UInt, typename U>
-Z_MODULE_TYPE<UInt> operator- (const U& lhs, const Z_MODULE_TYPE<UInt>& rhs){
+constexpr Z_MODULE_TYPE<UInt> operator- (const U& lhs, const Z_MODULE_TYPE<UInt>& rhs){
    Z_MODULE_TYPE<UInt> ret(rhs);
    ret -= lhs;
    return -ret;
 }
 template<auto UInt, typename U>
-Z_MODULE_TYPE<UInt> operator* (const U& lhs, const Z_MODULE_TYPE<UInt>& rhs){
+constexpr Z_MODULE_TYPE<UInt> operator* (const U& lhs, const Z_MODULE_TYPE<UInt>& rhs){
    Z_MODULE_TYPE<UInt> ret(rhs);
    ret *= lhs;
    return ret;

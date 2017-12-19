@@ -4,6 +4,7 @@
 #include "z_module.hpp"
 
 #include <type_traits>  // std::make_unsigned_t
+#include <exception> // std::domain_error
 
 // This macro will let oveloadings of some operators for ZModulePrime
 #define INCLUDED_Z_MODULE_PRIME
@@ -21,36 +22,37 @@ namespace detail{
 
       public:
 
-         // Take the value_type of the base class, ZModule
+         // Take the value_type of the base class, ZModule<UInt>
          typedef typename ZModule<UInt>::value_type value_type;
-         static constexpr value_type N = static_cast<value_type>(UInt);
+         using ZModule<UInt>::N;
+         using ZModule<UInt>::n;
 
          // Constructor by value
-         ZModulePrime (const value_type& zm = 0);
+         constexpr ZModulePrime (const value_type& zm = 0);
 
          // Operator /= overloadings for division (multiply by the inverse)
-         ZModulePrime& operator/= (const ZModulePrime& zm);
+         constexpr ZModulePrime& operator/= (const ZModulePrime& zm);
          template<typename U>
-         ZModulePrime& operator/= (const U& other);
+         constexpr ZModulePrime& operator/= (const U& other);
 
          // Conversion to another integer ring (must use static_cast<>())
          template<auto UInt2>
-         explicit operator ZModulePrime<UInt2>() const;
+         constexpr explicit operator ZModulePrime<UInt2>() const;
 
       private:
          // Helper function to calculate the inverse of the number in this ring
-         auto inverse() const;
+         constexpr auto inverse() const;
    };
 
    // Binary / operator for same type
    template<auto UInt>
-   ZModulePrime<UInt> operator/ (const ZModulePrime<UInt>& lhs, const ZModulePrime<UInt>& rhs);
+   constexpr ZModulePrime<UInt> operator/ (const ZModulePrime<UInt>& lhs, const ZModulePrime<UInt>& rhs);
 
    // Binary / operator for different types
    template<auto UInt, typename U>
-   ZModulePrime<UInt> operator/ (const ZModulePrime<UInt>& lhs, const U& rhs);
+   constexpr ZModulePrime<UInt> operator/ (const ZModulePrime<UInt>& lhs, const U& rhs);
    template<auto UInt, typename U>
-   ZModulePrime<UInt> operator/ (const U& lhs, const ZModulePrime<UInt>& rhs);
+   constexpr ZModulePrime<UInt> operator/ (const U& lhs, const ZModulePrime<UInt>& rhs);
 
 
    // Implementations of all the functions

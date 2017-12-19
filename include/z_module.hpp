@@ -18,35 +18,35 @@ namespace detail{
          static constexpr value_type N = static_cast<value_type>(UInt);
 
          // Returns the notation name for the ring
-         static std::string name();
+         static constexpr std::string name();
 
          // Constructor by value
-         ZModule (const value_type& zm = 0);
+         constexpr ZModule (const value_type& zm = 0);
 
          // Increment and decrement operators
-         ZModule& operator++ ();
-         ZModule& operator-- ();
-         ZModule operator++ (int);
-         ZModule operator-- (int);
+         constexpr ZModule& operator++ ();
+         constexpr ZModule& operator-- ();
+         constexpr ZModule operator++ (int);
+         constexpr ZModule operator-- (int);
 
          // Operator overloadings for modular arithmetic
-         ZModule& operator+= (const ZModule& zm);
-         ZModule& operator-= (const ZModule& zm);
-         ZModule& operator*= (const ZModule& zm);
+         constexpr ZModule& operator+= (const ZModule& zm);
+         constexpr ZModule& operator-= (const ZModule& zm);
+         constexpr ZModule& operator*= (const ZModule& zm);
 
          // Operator overloadings for compatibility with PODs
          template<typename U>
-         ZModule& operator+= (const U& other);
+         constexpr ZModule& operator+= (const U& other);
          template<typename U>
-         ZModule& operator-= (const U& other);
+         constexpr ZModule& operator-= (const U& other);
          template<typename U>
-         ZModule& operator*= (const U& other);
+         constexpr ZModule& operator*= (const U& other);
 
-         // Conversion to the underlined value_type
-         operator value_type() const;
+         // Conversion to the underlined value_type (must use static_cast<>())
+         constexpr explicit operator value_type() const;
          // Conversion to another integer ring (must use static_cast<>())
          template<auto UInt2>
-         explicit operator ZModule<UInt2>() const;
+         constexpr explicit operator ZModule<UInt2>() const;
 
          // I/O overloadings for ZModule objects
          friend std::istream& operator>> (std::istream& is, ZModule& zm){
@@ -67,73 +67,73 @@ namespace detail{
 
    // Unary + and - operators
    template<auto UInt>
-   ZModule<UInt> operator+ (const ZModule<UInt>& rhs);
+   constexpr ZModule<UInt> operator+ (const ZModule<UInt>& rhs);
    template<auto UInt>
-   ZModule<UInt> operator- (const ZModule<UInt>& rhs);
+   constexpr ZModule<UInt> operator- (const ZModule<UInt>& rhs);
 
    // Binary +, - and * operators for same type
    template<auto UInt>
-   ZModule<UInt> operator+ (const ZModule<UInt>& lhs, const ZModule<UInt>& rhs);
+   constexpr ZModule<UInt> operator+ (const ZModule<UInt>& lhs, const ZModule<UInt>& rhs);
    template<auto UInt>
-   ZModule<UInt> operator- (const ZModule<UInt>& lhs, const ZModule<UInt>& rhs);
+   constexpr ZModule<UInt> operator- (const ZModule<UInt>& lhs, const ZModule<UInt>& rhs);
    template<auto UInt>
-   ZModule<UInt> operator* (const ZModule<UInt>& lhs, const ZModule<UInt>& rhs);
+   constexpr ZModule<UInt> operator* (const ZModule<UInt>& lhs, const ZModule<UInt>& rhs);
 
    // Binary +, - and * operators for different types
    template<auto UInt, typename U>
-   ZModule<UInt> operator+ (const ZModule<UInt>& lhs, const U& rhs);
+   constexpr ZModule<UInt> operator+ (const ZModule<UInt>& lhs, const U& rhs);
    template<auto UInt, typename U>
-   ZModule<UInt> operator- (const ZModule<UInt>& lhs, const U& rhs);
+   constexpr ZModule<UInt> operator- (const ZModule<UInt>& lhs, const U& rhs);
    template<auto UInt, typename U>
-   ZModule<UInt> operator* (const ZModule<UInt>& lhs, const U& rhs);
+   constexpr ZModule<UInt> operator* (const ZModule<UInt>& lhs, const U& rhs);
 
    template<auto UInt, typename U>
-   ZModule<UInt> operator+ (const U& lhs, const ZModule<UInt>& rhs);
+   constexpr ZModule<UInt> operator+ (const U& lhs, const ZModule<UInt>& rhs);
    template<auto UInt, typename U>
-   ZModule<UInt> operator- (const U& lhs, const ZModule<UInt>& rhs);
+   constexpr ZModule<UInt> operator- (const U& lhs, const ZModule<UInt>& rhs);
    template<auto UInt, typename U>
-   ZModule<UInt> operator* (const U& lhs, const ZModule<UInt>& rhs);
+   constexpr ZModule<UInt> operator* (const U& lhs, const ZModule<UInt>& rhs);
 
    // Operator overloadings for comparisons of the same type
    template<auto UInt>
-   bool operator== (const ZModule<UInt>& lhs, const ZModule<UInt>& rhs);
+   constexpr bool operator== (const ZModule<UInt>& lhs, const ZModule<UInt>& rhs);
    template<auto UInt>
-   bool operator!= (const ZModule<UInt>& lhs, const ZModule<UInt>& rhs);
+   constexpr bool operator!= (const ZModule<UInt>& lhs, const ZModule<UInt>& rhs);
    template<auto UInt>
-   bool operator< (const ZModule<UInt>& lhs, const ZModule<UInt>& rhs);
+   constexpr bool operator< (const ZModule<UInt>& lhs, const ZModule<UInt>& rhs);
    template<auto UInt>
-   bool operator<= (const ZModule<UInt>& lhs, const ZModule<UInt>& rhs);
+   constexpr bool operator<= (const ZModule<UInt>& lhs, const ZModule<UInt>& rhs);
    template<auto UInt>
-   bool operator> (const ZModule<UInt>& lhs, const ZModule<UInt>& rhs);
+   constexpr bool operator> (const ZModule<UInt>& lhs, const ZModule<UInt>& rhs);
    template<auto UInt>
-   bool operator>= (const ZModule<UInt>& lhs, const ZModule<UInt>& rhs);
+   constexpr bool operator>= (const ZModule<UInt>& lhs, const ZModule<UInt>& rhs);
 
    // Operator overloadings for comparisons with other types
    template<auto UInt, typename U>
-   bool operator== (const ZModule<UInt>& lhs, const U& rhs);
+   constexpr bool operator== (const ZModule<UInt>& lhs, const U& rhs);
    template<auto UInt, typename U>
-   bool operator!= (const ZModule<UInt>& lhs, const U& rhs);
+   constexpr bool operator!= (const ZModule<UInt>& lhs, const U& rhs);
    template<auto UInt, typename U>
-   bool operator< (const ZModule<UInt>& lhs, const U& rhs);
+   constexpr bool operator< (const ZModule<UInt>& lhs, const U& rhs);
    template<auto UInt, typename U>
-   bool operator<= (const ZModule<UInt>& lhs, const U& rhs);
+   constexpr bool operator<= (const ZModule<UInt>& lhs, const U& rhs);
    template<auto UInt, typename U>
-   bool operator> (const ZModule<UInt>& lhs, const U& rhs);
+   constexpr bool operator> (const ZModule<UInt>& lhs, const U& rhs);
    template<auto UInt, typename U>
-   bool operator>= (const ZModule<UInt>& lhs, const U& rhs);
+   constexpr bool operator>= (const ZModule<UInt>& lhs, const U& rhs);
 
    template<auto UInt, typename U>
-   bool operator== (const U& lhs, const ZModule<UInt>& rhs);
+   constexpr bool operator== (const U& lhs, const ZModule<UInt>& rhs);
    template<auto UInt, typename U>
-   bool operator!= (const U& lhs, const ZModule<UInt>& rhs);
+   constexpr bool operator!= (const U& lhs, const ZModule<UInt>& rhs);
    template<auto UInt, typename U>
-   bool operator< (const U& lhs, const ZModule<UInt>& rhs);
+   constexpr bool operator< (const U& lhs, const ZModule<UInt>& rhs);
    template<auto UInt, typename U>
-   bool operator<= (const U& lhs, const ZModule<UInt>& rhs);
+   constexpr bool operator<= (const U& lhs, const ZModule<UInt>& rhs);
    template<auto UInt, typename U>
-   bool operator> (const U& lhs, const ZModule<UInt>& rhs);
+   constexpr bool operator> (const U& lhs, const ZModule<UInt>& rhs);
    template<auto UInt, typename U>
-   bool operator>= (const U& lhs, const ZModule<UInt>& rhs);
+   constexpr bool operator>= (const U& lhs, const ZModule<UInt>& rhs);
 
 
    // Implementations of all the functions
