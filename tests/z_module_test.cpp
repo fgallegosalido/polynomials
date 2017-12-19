@@ -1,5 +1,6 @@
-#include "z_module.hpp"
 #define PRIME_CHECK_SUPPORT
+#define UNICODE_SUPPORT
+#include "z_module.hpp"
 #include "z_module_prime.hpp"
 
 #include <iostream>
@@ -7,6 +8,9 @@
 // Function to check correctness of ZModule class
 template<template<auto> typename T, auto UInt1 = 100, auto UInt2 = UInt1*2>
 void test_z_module(){
+   // Name of the class
+   std::cout << T<UInt1>::name() << std::endl;
+
    // Construction
    T<UInt1> a(10), b(20), c(30);
 
@@ -61,7 +65,7 @@ void test_z_module(){
    T<UInt2> e;
    std::cout << "Testing input. Type a number -> ";
    std::cin >> e;
-   std::cout << "The typed number is " << e << " in Z" << UInt2 << std::endl;
+   std::cout << "The typed number is " << e << " in " << T<UInt2>::name() << std::endl;
 }
 
 // Function to check correctness of ZModulePrime class

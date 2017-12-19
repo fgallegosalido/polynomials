@@ -1,5 +1,7 @@
 #pragma once
 
+#include "aux.hpp"
+
 #include <iostream>  // std::istream, std::ostream
 #include <type_traits>  // std::make_unsigned_t
 
@@ -14,6 +16,9 @@ namespace detail{
          typedef std::make_unsigned_t<decltype(UInt)> value_type;
          // Variable holding the cardinal of the ring
          static constexpr value_type N = static_cast<value_type>(UInt);
+
+         // Returns the notation name for the ring
+         static std::string name();
 
          // Constructor by value
          ZModule (const value_type& zm = 0);

@@ -1,18 +1,21 @@
 #pragma once
 
-#include "z_module.hpp"
-#define PRIME_CHECK_SUPPORT
-#include "z_module_prime.cpp"
+#include "aux.hpp"
 
 #include <iostream>  // std::cout, std::cin, std::endl
 #include <vector> // std::vector
-#include <string> // std::string
 #include <initializer_list>   // std::initializer_list
 #include <iterator>  // std::iterator_traits
 #include <utility>   // std::move
 #include <complex>   // std::complex
 #include <cmath>  // std::pow()
 #include <cstdint>   // std::int8_t, std::int16_t, std::int32_t, std::int64_t
+
+// Library for Z-module sets
+#ifdef Z_MODULE_SUPPORT
+   #include "z_module.hpp"
+   #include "z_module_prime.cpp"
+#endif
 
 // Boost libraries for some interesting number types
 #ifdef RATIONAL_SUPPORT
@@ -35,52 +38,6 @@
 #endif
 
 namespace detail{
-
-   namespace aux{
-
-      /* Array that contains numbers from 0 to 9 (including empty string)
-       *
-       * If the user defines the macro UNICODE_SUPPORT, an array of superscript
-       * numbers will be generated instead of normal ones
-       */
-      constexpr const char* superscripts[] = {
-   #ifdef UNICODE_SUPPORT
-      "\u2070", "\u00B9", "\u00B2", "\u00B3", "\u2074", "\u2075", "\u2076", "\u2077", "\u2078", "\u2079"
-   #else
-      "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"
-   #endif
-      , ""};
-
-      /* Function that returns a number from 0 to 9 in superscript (if enabled
-       * by the user through the UNICODE_SUPPORT macro)
-       */
-      constexpr auto superscript (std::size_t n){
-         return (n<=9) ? superscripts[n]
-                  : superscripts[10];   // Any other number will return an empty string
-      }
-
-      /* Function that returns any unsigned number in superscript.
-       *
-       * If UNICODE_SUPPORT is not enabled, it will return the string "^n"
-       */
-      std::string power_string (unsigned  n){
-         std::string power = "";
-
-      #ifdef UNICODE_SUPPORT
-         if (n==1 || n==0) return power;
-
-         while (n>0){
-            power = superscript(n%10) + power;
-            n /= 10;
-         }
-      #else
-         power = "^" + std::to_string(n);
-      #endif
-
-         return power;
-      }
-
-   }  // namespace aux
 
    // Alias to get the category of an iterator (random access, bidirectional,...)
    template <typename Iterator>
@@ -369,7 +326,7 @@ namespace detail{
                else if (pol.get_coefficient(pol.degree()) != 1){
                   os << pol.get_coefficient(pol.degree());
                }
-               os << pol.get_variable() << aux::power_string(pol.degree());
+               os << pol.get_variable() << aux::exponent(pol.degree());
 
                for (size_type i=pol.degree()-1; i>0; --i){
                   if (pol.get_coefficient(i) != 0){
@@ -384,7 +341,7 @@ namespace detail{
                         os << "-";
                      }
 
-                     os << pol.get_variable() << aux::power_string(i);
+                     os << pol.get_variable() << aux::exponent(i);
                   }
                }
 
@@ -555,9 +512,11 @@ namespace detail{
    typedef Polynomial<std::complex<multiprecision_float>> polynomial_multiprecision_complex;
 #endif
 
+#ifdef Z_MODULE_SUPPORT
    template<auto N>
    using polynomial_modular = Polynomial<ZModule<N>>;
    template<auto N>
    using polynomial_modular_prime = Polynomial<ZModulePrime<N>>;
+#endif
 
 }  // namespace detail

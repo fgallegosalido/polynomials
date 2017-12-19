@@ -1,3 +1,9 @@
+template<auto UInt>
+std::string ZModule<UInt>::name(){
+   return "Z" + aux::subindex_string(N);
+}
+
+
 /************* Constructor *************/
 template<auto UInt>
 ZModule<UInt>::ZModule (const value_type& zm) : n(zm%N){}
