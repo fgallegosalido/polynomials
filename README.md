@@ -26,7 +26,7 @@ There's a compile time primality test for Z-module with prime cardinality in cas
 ## Use
 To use this library, you can just download or clone the repository and include the headers where necessary (assuming that the directory is in your project directory).
 
-Everything is under the `detail` namespace, so you can prefix `detail::` to the types of the types, or just use `using namespace detail;` for simplicity. You can use it like this:
+Everything is under the `detail` namespace, so you can prefix `detail::` to the types, or just use `using namespace detail;` for simplicity. You can use it like this:
 
 ```cpp
 #include "polynomials/include/polynomial.hpp"
@@ -43,8 +43,9 @@ int main(){
             << pol << ") + (" << pol2 << ") = " << pol + pol2 << std::endl;
 
   detail::Polynomial<detail::ZModule<7>> p_mod = {1, 2, 3, 8}; // In Z-module, this is x^3 + 3x^2 + 2x + 1
+  detail::Polynomial<detail::ZModule<7>> p_mod2 = {v.begin(), v.end()};
 
-  std::cout << p_mod*2 << std::endl;
+  std::cout << p_mod*p_mod2 << std::endl;
 }
 ```
 
