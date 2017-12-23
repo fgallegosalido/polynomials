@@ -93,5 +93,5 @@ constexpr ZModule<Integral>::operator T() const{
 }
 template<auto Integral> template<auto Integral2>
 constexpr ZModule<Integral>::operator ZModule<Integral2>() const{
-   return ZModule<Integral2>(n);
+   return ZModule<Integral2>(n%(ZModule<Integral2>::N));
 }
