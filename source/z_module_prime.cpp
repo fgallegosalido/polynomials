@@ -1,41 +1,41 @@
 /************* Constructor *************/
-template<auto UInt>
-constexpr ZModulePrime<UInt>::ZModulePrime (const value_type& zm) : ZModule<UInt>(zm){}
+template<auto Integral>
+constexpr ZModulePrime<Integral>::ZModulePrime (const value_type& zm) : ZModule<Integral>(zm){}
 
 /*********************************************************************/
 /************* Operator /= for same and different types **************/
 /*********************************************************************/
-template<auto UInt>
-constexpr ZModulePrime<UInt>& ZModulePrime<UInt>::operator/= (const ZModulePrime<UInt>& zm){
+template<auto Integral>
+constexpr ZModulePrime<Integral>& ZModulePrime<Integral>::operator/= (const ZModulePrime<Integral>& zm){
    n = (n*zm.inverse())%N;
    return *this;
 }
-template<auto UInt> template<typename U>
-constexpr ZModulePrime<UInt>& ZModulePrime<UInt>::operator/= (const U& other){
-   n = (n * ZModulePrime<UInt>(static_cast<value_type>(other)).inverse())%N;
+template<auto Integral> template<typename U>
+constexpr ZModulePrime<Integral>& ZModulePrime<Integral>::operator/= (const U& other){
+   n = (n * ZModulePrime<Integral>(static_cast<value_type>(other)).inverse())%N;
    return *this;
 }
 
 /********************************************************************/
 /************* Operator / for same and different types **************/
 /********************************************************************/
-template<auto UInt>
-constexpr ZModulePrime<UInt> operator/ (const ZModulePrime<UInt>& lhs, const ZModulePrime<UInt>& rhs){
-   return ZModulePrime<UInt>(lhs) /= rhs;
+template<auto Integral>
+constexpr ZModulePrime<Integral> operator/ (const ZModulePrime<Integral>& lhs, const ZModulePrime<Integral>& rhs){
+   return ZModulePrime<Integral>(lhs) /= rhs;
 }
 
-template<auto UInt, typename U>
-constexpr ZModulePrime<UInt> operator/ (const ZModulePrime<UInt>& lhs, const U& rhs){
-   return ZModulePrime<UInt>(lhs) /= static_cast<typename ZModulePrime<UInt>::value_type>(rhs);
+template<auto Integral, typename U>
+constexpr ZModulePrime<Integral> operator/ (const ZModulePrime<Integral>& lhs, const U& rhs){
+   return ZModulePrime<Integral>(lhs) /= static_cast<typename ZModulePrime<Integral>::value_type>(rhs);
 }
-template<auto UInt, typename U>
-constexpr ZModulePrime<UInt> operator/ (const U& lhs, const ZModulePrime<UInt>& rhs){
-   return ZModulePrime<UInt>(static_cast<typename ZModulePrime<UInt>::value_type>(lhs)) /= rhs;
+template<auto Integral, typename U>
+constexpr ZModulePrime<Integral> operator/ (const U& lhs, const ZModulePrime<Integral>& rhs){
+   return ZModulePrime<Integral>(static_cast<typename ZModulePrime<Integral>::value_type>(lhs)) /= rhs;
 }
 
 // Calculate the inverse of the number in the ring
-template<auto UInt>
-constexpr auto ZModulePrime<UInt>::inverse() const{
+template<auto Integral>
+constexpr auto ZModulePrime<Integral>::inverse() const{
    if (n == 0){
       throw std::domain_error("Divide by zero exception");
    }
@@ -47,7 +47,7 @@ constexpr auto ZModulePrime<UInt>::inverse() const{
 }
 
 // Conversion to another prime integer ring (must use static_cast<>())
-template<auto UInt> template<auto UInt2>
-constexpr ZModulePrime<UInt>::operator ZModulePrime<UInt2>() const{
-   return ZModulePrime<UInt2>(n);
+template<auto Integral> template<auto Integral2>
+constexpr ZModulePrime<Integral>::operator ZModulePrime<Integral2>() const{
+   return ZModulePrime<Integral2>(n);
 }

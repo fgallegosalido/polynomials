@@ -12,35 +12,35 @@
 /***************************************************/
 /*********** Unary + and - operators ***************/
 /***************************************************/
-template<auto UInt>
-constexpr Z_MODULE_TYPE<UInt> operator+ (const Z_MODULE_TYPE<UInt>& rhs){
-   return Z_MODULE_TYPE<UInt>(rhs);
+template<auto Integral>
+constexpr Z_MODULE_TYPE<Integral> operator+ (const Z_MODULE_TYPE<Integral>& rhs){
+   return Z_MODULE_TYPE<Integral>(rhs);
 }
-template<auto UInt>
-constexpr Z_MODULE_TYPE<UInt> operator- (const Z_MODULE_TYPE<UInt>& rhs){
-   return Z_MODULE_TYPE<UInt>(Z_MODULE_TYPE<UInt>::N -
-      static_cast<typename Z_MODULE_TYPE<UInt>::value_type>(rhs));
+template<auto Integral>
+constexpr Z_MODULE_TYPE<Integral> operator- (const Z_MODULE_TYPE<Integral>& rhs){
+   return Z_MODULE_TYPE<Integral>(Z_MODULE_TYPE<Integral>::N -
+      static_cast<typename Z_MODULE_TYPE<Integral>::value_type>(rhs));
 }
 
 
 /************************************************************************/
 /*************** Binary operators +, -, * for same type *****************/
 /************************************************************************/
-template<auto UInt>
-constexpr Z_MODULE_TYPE<UInt> operator+ (const Z_MODULE_TYPE<UInt>& lhs, const Z_MODULE_TYPE<UInt>& rhs){
-   Z_MODULE_TYPE<UInt> ret(lhs);
+template<auto Integral>
+constexpr Z_MODULE_TYPE<Integral> operator+ (const Z_MODULE_TYPE<Integral>& lhs, const Z_MODULE_TYPE<Integral>& rhs){
+   Z_MODULE_TYPE<Integral> ret(lhs);
    ret += rhs;
    return ret;
 }
-template<auto UInt>
-constexpr Z_MODULE_TYPE<UInt> operator- (const Z_MODULE_TYPE<UInt>& lhs, const Z_MODULE_TYPE<UInt>& rhs){
-   Z_MODULE_TYPE<UInt> ret(lhs);
+template<auto Integral>
+constexpr Z_MODULE_TYPE<Integral> operator- (const Z_MODULE_TYPE<Integral>& lhs, const Z_MODULE_TYPE<Integral>& rhs){
+   Z_MODULE_TYPE<Integral> ret(lhs);
    ret -= rhs;
    return ret;
 }
-template<auto UInt>
-constexpr Z_MODULE_TYPE<UInt> operator* (const Z_MODULE_TYPE<UInt>& lhs, const Z_MODULE_TYPE<UInt>& rhs){
-   Z_MODULE_TYPE<UInt> ret(lhs);
+template<auto Integral>
+constexpr Z_MODULE_TYPE<Integral> operator* (const Z_MODULE_TYPE<Integral>& lhs, const Z_MODULE_TYPE<Integral>& rhs){
+   Z_MODULE_TYPE<Integral> ret(lhs);
    ret *= rhs;
    return ret;
 }
@@ -49,40 +49,40 @@ constexpr Z_MODULE_TYPE<UInt> operator* (const Z_MODULE_TYPE<UInt>& lhs, const Z
 /*****************************************************************************/
 /*************** Binary operators +, -, * for different types ****************/
 /*****************************************************************************/
-template<auto UInt, typename U>
-constexpr Z_MODULE_TYPE<UInt> operator+ (const Z_MODULE_TYPE<UInt>& lhs, const U& rhs){
-   Z_MODULE_TYPE<UInt> ret(lhs);
+template<auto Integral, typename U>
+constexpr Z_MODULE_TYPE<Integral> operator+ (const Z_MODULE_TYPE<Integral>& lhs, const U& rhs){
+   Z_MODULE_TYPE<Integral> ret(lhs);
    ret += rhs;
    return ret;
 }
-template<auto UInt, typename U>
-constexpr Z_MODULE_TYPE<UInt> operator- (const Z_MODULE_TYPE<UInt>& lhs, const U& rhs){
-   Z_MODULE_TYPE<UInt> ret(lhs);
+template<auto Integral, typename U>
+constexpr Z_MODULE_TYPE<Integral> operator- (const Z_MODULE_TYPE<Integral>& lhs, const U& rhs){
+   Z_MODULE_TYPE<Integral> ret(lhs);
    ret -= rhs;
    return ret;
 }
-template<auto UInt, typename U>
-constexpr Z_MODULE_TYPE<UInt> operator* (const Z_MODULE_TYPE<UInt>& lhs, const U& rhs){
-   Z_MODULE_TYPE<UInt> ret(lhs);
+template<auto Integral, typename U>
+constexpr Z_MODULE_TYPE<Integral> operator* (const Z_MODULE_TYPE<Integral>& lhs, const U& rhs){
+   Z_MODULE_TYPE<Integral> ret(lhs);
    ret *= rhs;
    return ret;
 }
 /*------------------------------------------*/
-template<auto UInt, typename U>
-constexpr Z_MODULE_TYPE<UInt> operator+ (const U& lhs, const Z_MODULE_TYPE<UInt>& rhs){
-   Z_MODULE_TYPE<UInt> ret(rhs);
+template<auto Integral, typename U>
+constexpr Z_MODULE_TYPE<Integral> operator+ (const U& lhs, const Z_MODULE_TYPE<Integral>& rhs){
+   Z_MODULE_TYPE<Integral> ret(rhs);
    ret += lhs;
    return ret;
 }
-template<auto UInt, typename U>
-constexpr Z_MODULE_TYPE<UInt> operator- (const U& lhs, const Z_MODULE_TYPE<UInt>& rhs){
-   Z_MODULE_TYPE<UInt> ret(rhs);
+template<auto Integral, typename U>
+constexpr Z_MODULE_TYPE<Integral> operator- (const U& lhs, const Z_MODULE_TYPE<Integral>& rhs){
+   Z_MODULE_TYPE<Integral> ret(rhs);
    ret -= lhs;
    return -ret;
 }
-template<auto UInt, typename U>
-constexpr Z_MODULE_TYPE<UInt> operator* (const U& lhs, const Z_MODULE_TYPE<UInt>& rhs){
-   Z_MODULE_TYPE<UInt> ret(rhs);
+template<auto Integral, typename U>
+constexpr Z_MODULE_TYPE<Integral> operator* (const U& lhs, const Z_MODULE_TYPE<Integral>& rhs){
+   Z_MODULE_TYPE<Integral> ret(rhs);
    ret *= lhs;
    return ret;
 }

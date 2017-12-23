@@ -3,19 +3,23 @@
 #include "aux.hpp"
 
 #include <iostream>  // std::istream, std::ostream
-#include <type_traits>  // std::make_unsigned_t
+#include <string> // std::string
 
 namespace detail{
 
-   template <auto UInt>
+   template <auto Integral>
    class ZModule{
+      /* It makes no sense to have a cardinality lower than 2,
+       * so we will force it to be bigger than 1.
+       */
+      static_assert(Integral > 1, "Cardinal of Z-module must be bigger than 1");
 
       public:
 
-         // Typedef for the value_type. We want it to be unsigned
-         typedef std::make_unsigned_t<decltype(UInt)> value_type;
+         // Typedef for the value_type
+         typedef decltype(Integral) value_type;
          // Variable holding the cardinal of the ring
-         static constexpr value_type N = static_cast<value_type>(UInt);
+         static constexpr value_type N = Integral;
 
          // Returns the notation name for the ring
          static constexpr std::string name();
@@ -43,10 +47,11 @@ namespace detail{
          constexpr ZModule& operator*= (const U& other);
 
          // Conversion to the underlined value_type (must use static_cast<>())
-         constexpr explicit operator value_type() const;
+         template<typename T = value_type>
+         constexpr explicit operator T() const;
          // Conversion to another integer ring (must use static_cast<>())
-         template<auto UInt2>
-         constexpr explicit operator ZModule<UInt2>() const;
+         template<auto Integral2>
+         constexpr explicit operator ZModule<Integral2>() const;
 
          // I/O overloadings for ZModule objects
          friend std::istream& operator>> (std::istream& is, ZModule& zm){
@@ -66,74 +71,74 @@ namespace detail{
    };
 
    // Unary + and - operators
-   template<auto UInt>
-   constexpr ZModule<UInt> operator+ (const ZModule<UInt>& rhs);
-   template<auto UInt>
-   constexpr ZModule<UInt> operator- (const ZModule<UInt>& rhs);
+   template<auto Integral>
+   constexpr ZModule<Integral> operator+ (const ZModule<Integral>& rhs);
+   template<auto Integral>
+   constexpr ZModule<Integral> operator- (const ZModule<Integral>& rhs);
 
    // Binary +, - and * operators for same type
-   template<auto UInt>
-   constexpr ZModule<UInt> operator+ (const ZModule<UInt>& lhs, const ZModule<UInt>& rhs);
-   template<auto UInt>
-   constexpr ZModule<UInt> operator- (const ZModule<UInt>& lhs, const ZModule<UInt>& rhs);
-   template<auto UInt>
-   constexpr ZModule<UInt> operator* (const ZModule<UInt>& lhs, const ZModule<UInt>& rhs);
+   template<auto Integral>
+   constexpr ZModule<Integral> operator+ (const ZModule<Integral>& lhs, const ZModule<Integral>& rhs);
+   template<auto Integral>
+   constexpr ZModule<Integral> operator- (const ZModule<Integral>& lhs, const ZModule<Integral>& rhs);
+   template<auto Integral>
+   constexpr ZModule<Integral> operator* (const ZModule<Integral>& lhs, const ZModule<Integral>& rhs);
 
    // Binary +, - and * operators for different types
-   template<auto UInt, typename U>
-   constexpr ZModule<UInt> operator+ (const ZModule<UInt>& lhs, const U& rhs);
-   template<auto UInt, typename U>
-   constexpr ZModule<UInt> operator- (const ZModule<UInt>& lhs, const U& rhs);
-   template<auto UInt, typename U>
-   constexpr ZModule<UInt> operator* (const ZModule<UInt>& lhs, const U& rhs);
+   template<auto Integral, typename U>
+   constexpr ZModule<Integral> operator+ (const ZModule<Integral>& lhs, const U& rhs);
+   template<auto Integral, typename U>
+   constexpr ZModule<Integral> operator- (const ZModule<Integral>& lhs, const U& rhs);
+   template<auto Integral, typename U>
+   constexpr ZModule<Integral> operator* (const ZModule<Integral>& lhs, const U& rhs);
 
-   template<auto UInt, typename U>
-   constexpr ZModule<UInt> operator+ (const U& lhs, const ZModule<UInt>& rhs);
-   template<auto UInt, typename U>
-   constexpr ZModule<UInt> operator- (const U& lhs, const ZModule<UInt>& rhs);
-   template<auto UInt, typename U>
-   constexpr ZModule<UInt> operator* (const U& lhs, const ZModule<UInt>& rhs);
+   template<auto Integral, typename U>
+   constexpr ZModule<Integral> operator+ (const U& lhs, const ZModule<Integral>& rhs);
+   template<auto Integral, typename U>
+   constexpr ZModule<Integral> operator- (const U& lhs, const ZModule<Integral>& rhs);
+   template<auto Integral, typename U>
+   constexpr ZModule<Integral> operator* (const U& lhs, const ZModule<Integral>& rhs);
 
    // Operator overloadings for comparisons of the same type
-   template<auto UInt>
-   constexpr bool operator== (const ZModule<UInt>& lhs, const ZModule<UInt>& rhs);
-   template<auto UInt>
-   constexpr bool operator!= (const ZModule<UInt>& lhs, const ZModule<UInt>& rhs);
-   template<auto UInt>
-   constexpr bool operator< (const ZModule<UInt>& lhs, const ZModule<UInt>& rhs);
-   template<auto UInt>
-   constexpr bool operator<= (const ZModule<UInt>& lhs, const ZModule<UInt>& rhs);
-   template<auto UInt>
-   constexpr bool operator> (const ZModule<UInt>& lhs, const ZModule<UInt>& rhs);
-   template<auto UInt>
-   constexpr bool operator>= (const ZModule<UInt>& lhs, const ZModule<UInt>& rhs);
+   template<auto Integral>
+   constexpr bool operator== (const ZModule<Integral>& lhs, const ZModule<Integral>& rhs);
+   template<auto Integral>
+   constexpr bool operator!= (const ZModule<Integral>& lhs, const ZModule<Integral>& rhs);
+   template<auto Integral>
+   constexpr bool operator< (const ZModule<Integral>& lhs, const ZModule<Integral>& rhs);
+   template<auto Integral>
+   constexpr bool operator<= (const ZModule<Integral>& lhs, const ZModule<Integral>& rhs);
+   template<auto Integral>
+   constexpr bool operator> (const ZModule<Integral>& lhs, const ZModule<Integral>& rhs);
+   template<auto Integral>
+   constexpr bool operator>= (const ZModule<Integral>& lhs, const ZModule<Integral>& rhs);
 
    // Operator overloadings for comparisons with other types
-   template<auto UInt, typename U>
-   constexpr bool operator== (const ZModule<UInt>& lhs, const U& rhs);
-   template<auto UInt, typename U>
-   constexpr bool operator!= (const ZModule<UInt>& lhs, const U& rhs);
-   template<auto UInt, typename U>
-   constexpr bool operator< (const ZModule<UInt>& lhs, const U& rhs);
-   template<auto UInt, typename U>
-   constexpr bool operator<= (const ZModule<UInt>& lhs, const U& rhs);
-   template<auto UInt, typename U>
-   constexpr bool operator> (const ZModule<UInt>& lhs, const U& rhs);
-   template<auto UInt, typename U>
-   constexpr bool operator>= (const ZModule<UInt>& lhs, const U& rhs);
+   template<auto Integral, typename U>
+   constexpr bool operator== (const ZModule<Integral>& lhs, const U& rhs);
+   template<auto Integral, typename U>
+   constexpr bool operator!= (const ZModule<Integral>& lhs, const U& rhs);
+   template<auto Integral, typename U>
+   constexpr bool operator< (const ZModule<Integral>& lhs, const U& rhs);
+   template<auto Integral, typename U>
+   constexpr bool operator<= (const ZModule<Integral>& lhs, const U& rhs);
+   template<auto Integral, typename U>
+   constexpr bool operator> (const ZModule<Integral>& lhs, const U& rhs);
+   template<auto Integral, typename U>
+   constexpr bool operator>= (const ZModule<Integral>& lhs, const U& rhs);
 
-   template<auto UInt, typename U>
-   constexpr bool operator== (const U& lhs, const ZModule<UInt>& rhs);
-   template<auto UInt, typename U>
-   constexpr bool operator!= (const U& lhs, const ZModule<UInt>& rhs);
-   template<auto UInt, typename U>
-   constexpr bool operator< (const U& lhs, const ZModule<UInt>& rhs);
-   template<auto UInt, typename U>
-   constexpr bool operator<= (const U& lhs, const ZModule<UInt>& rhs);
-   template<auto UInt, typename U>
-   constexpr bool operator> (const U& lhs, const ZModule<UInt>& rhs);
-   template<auto UInt, typename U>
-   constexpr bool operator>= (const U& lhs, const ZModule<UInt>& rhs);
+   template<auto Integral, typename U>
+   constexpr bool operator== (const U& lhs, const ZModule<Integral>& rhs);
+   template<auto Integral, typename U>
+   constexpr bool operator!= (const U& lhs, const ZModule<Integral>& rhs);
+   template<auto Integral, typename U>
+   constexpr bool operator< (const U& lhs, const ZModule<Integral>& rhs);
+   template<auto Integral, typename U>
+   constexpr bool operator<= (const U& lhs, const ZModule<Integral>& rhs);
+   template<auto Integral, typename U>
+   constexpr bool operator> (const U& lhs, const ZModule<Integral>& rhs);
+   template<auto Integral, typename U>
+   constexpr bool operator>= (const U& lhs, const ZModule<Integral>& rhs);
 
 
    // Implementations of all the functions

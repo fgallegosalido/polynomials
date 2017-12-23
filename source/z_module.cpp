@@ -1,37 +1,44 @@
-template<auto UInt>
-constexpr std::string ZModule<UInt>::name(){
+template<auto Integral>
+constexpr std::string ZModule<Integral>::name(){
    return aux::unicode::integer_set_symbol + aux::subindex_string(N);
 }
 
 
 /************* Constructor *************/
-template<auto UInt>
-constexpr ZModule<UInt>::ZModule (const value_type& zm) : n(zm%N){}
+template<auto Integral>
+constexpr ZModule<Integral>::ZModule (const value_type& zm){
+   if (zm < 0){
+      n = N - (-zm)%N;
+   }
+   else{
+      n = zm%N;
+   }
+}
 
 
 /*************************************************************/
 /************** Increment/Decrement operators ****************/
 /*************************************************************/
-template<auto UInt>
-constexpr ZModule<UInt>& ZModule<UInt>::operator++ (){
+template<auto Integral>
+constexpr ZModule<Integral>& ZModule<Integral>::operator++ (){
    n = (n+1)%N;
    return *this;
 }
-template<auto UInt>
-constexpr ZModule<UInt>& ZModule<UInt>::operator-- (){
+template<auto Integral>
+constexpr ZModule<Integral>& ZModule<Integral>::operator-- (){
    n = (n==0)?N-1:n-1;
    return *this;
 }
 /*-------------------------------------*/
-template<auto UInt>
-constexpr ZModule<UInt> ZModule<UInt>::operator++ (int){
-   ZModule<UInt> ret(*this);
+template<auto Integral>
+constexpr ZModule<Integral> ZModule<Integral>::operator++ (int){
+   ZModule<Integral> ret(*this);
    ++(*this);
    return ret;
 }
-template<auto UInt>
-constexpr ZModule<UInt> ZModule<UInt>::operator-- (int){
-   ZModule<UInt> ret(*this);
+template<auto Integral>
+constexpr ZModule<Integral> ZModule<Integral>::operator-- (int){
+   ZModule<Integral> ret(*this);
    --(*this);
    return ret;
 }
@@ -40,18 +47,18 @@ constexpr ZModule<UInt> ZModule<UInt>::operator-- (int){
 /***************************************************************/
 /************* Operators +=, -=, *= for same type **************/
 /***************************************************************/
-template<auto UInt>
-constexpr ZModule<UInt>& ZModule<UInt>::operator+= (const ZModule<UInt>& zm){
+template<auto Integral>
+constexpr ZModule<Integral>& ZModule<Integral>::operator+= (const ZModule<Integral>& zm){
    n = (n+zm.n)%N;
    return *this;
 }
-template<auto UInt>
-constexpr ZModule<UInt>& ZModule<UInt>::operator-= (const ZModule<UInt>& zm){
+template<auto Integral>
+constexpr ZModule<Integral>& ZModule<Integral>::operator-= (const ZModule<Integral>& zm){
    n = (n+N-zm.n)%N;
    return *this;
 }
-template<auto UInt>
-constexpr ZModule<UInt>& ZModule<UInt>::operator*= (const ZModule<UInt>& zm){
+template<auto Integral>
+constexpr ZModule<Integral>& ZModule<Integral>::operator*= (const ZModule<Integral>& zm){
    n = (n*zm.n)%N;
    return *this;
 }
@@ -60,18 +67,18 @@ constexpr ZModule<UInt>& ZModule<UInt>::operator*= (const ZModule<UInt>& zm){
 /*****************************************************************************/
 /************ Operators +=, -=, *= for other types compatibility *************/
 /*****************************************************************************/
-template<auto UInt> template<typename U>
-constexpr ZModule<UInt>& ZModule<UInt>::operator+= (const U& other){
+template<auto Integral> template<typename U>
+constexpr ZModule<Integral>& ZModule<Integral>::operator+= (const U& other){
    n = (n+static_cast<value_type>(other))%N;
    return *this;
 }
-template<auto UInt> template<typename U>
-constexpr ZModule<UInt>& ZModule<UInt>::operator-= (const U& other){
+template<auto Integral> template<typename U>
+constexpr ZModule<Integral>& ZModule<Integral>::operator-= (const U& other){
    n = (n+N-static_cast<value_type>(other))%N;
    return *this;
 }
-template<auto UInt> template<typename U>
-constexpr ZModule<UInt>& ZModule<UInt>::operator*= (const U& other){
+template<auto Integral> template<typename U>
+constexpr ZModule<Integral>& ZModule<Integral>::operator*= (const U& other){
    n = (n*static_cast<value_type>(other))%N;
    return *this;
 }
@@ -80,11 +87,11 @@ constexpr ZModule<UInt>& ZModule<UInt>::operator*= (const U& other){
 /*********************************************************************/
 /************** Castings to value_type or other ZModule **************/
 /*********************************************************************/
-template<auto UInt>
-constexpr ZModule<UInt>::operator ZModule<UInt>::value_type() const{
-   return n;
+template<auto Integral> template<typename T>
+constexpr ZModule<Integral>::operator T() const{
+   return T(n);
 }
-template<auto UInt> template<auto UInt2>
-constexpr ZModule<UInt>::operator ZModule<UInt2>() const{
-   return ZModule<UInt2>(n);
+template<auto Integral> template<auto Integral2>
+constexpr ZModule<Integral>::operator ZModule<Integral2>() const{
+   return ZModule<Integral2>(n);
 }

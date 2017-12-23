@@ -44,20 +44,20 @@ namespace detail{
    using traits = typename std::iterator_traits<Iterator>::iterator_category;
 
    // Class Polynomial. CType is the type of the coefficients
-   template <typename CType>
+   template <typename CType, typename Container = std::vector<CType>>
    class Polynomial{
 
       public:
 
          // typedefs for the value_type (coefficients) and the size_type
-         typedef typename std::vector<CType>::value_type value_type;
-         typedef typename std::vector<CType>::size_type size_type;
+         typedef typename Container::value_type value_type;
+         typedef typename Container::size_type size_type;
 
          // typedefs for iterator validity
-         typedef typename std::vector<value_type>::iterator iterator;
-         typedef typename std::vector<value_type>::const_iterator const_iterator;
-         typedef typename std::vector<value_type>::reverse_iterator reverse_iterator;
-         typedef typename std::vector<value_type>::const_reverse_iterator const_reverse_iterator;
+         typedef typename Container::iterator iterator;
+         typedef typename Container::const_iterator const_iterator;
+         typedef typename Container::reverse_iterator reverse_iterator;
+         typedef typename Container::const_reverse_iterator const_reverse_iterator;
 
          // Some constructors
          explicit Polynomial (const char& c = 'x') : var(c), coeffs(1, 0){}
@@ -163,7 +163,7 @@ namespace detail{
                return *this;
             }
 
-            std::vector<value_type> coc(coeffs.size()-pol.coeffs.size()+1, 0);
+            Container coc(coeffs.size()-pol.coeffs.size()+1, 0);
 
             for (int i=coc.size()-1; i>=0; --i){
                coc[i] = coeffs[pol.coeffs.size()+i-1]/pol.coeffs.back();
@@ -408,7 +408,7 @@ namespace detail{
       private:
 
          char var;   // Letter that identifies the variable
-         std::vector<value_type> coeffs;  // Actual coefficients of the polynomial
+         Container coeffs;  // Actual coefficients of the polynomial
 
          // Helper function to adjust the degree, so the last coefficient is not 0
          void adjust_degree (){
