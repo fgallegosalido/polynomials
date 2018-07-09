@@ -4,519 +4,874 @@
 
 #include <iostream>  // std::cout, std::cin, std::endl
 #include <vector> // std::vector
+#include <algorithm> // std::transform, std::generate, std::max_element
 #include <initializer_list>   // std::initializer_list
 #include <iterator>  // std::iterator_traits
 #include <utility>   // std::move
-#include <complex>   // std::complex
-#include <cmath>  // std::pow()
-#include <cstdint>   // std::int8_t, std::int16_t, std::int32_t, std::int64_t
+#include <complex>   // std::complex, std::polar
+#include <random>   // std::random_device, std::mt19937, std::uniform_real_distribution
+#include <exception>    // std::out_of_range
+#include <cmath>  // std::pow, std::acos, std::abs
 
-// Library for Z-module rings and fields
-#ifdef Z_MODULE_SUPPORT
-   #include "z_module.hpp" // detail::ZModule
-   #include "z_module_prime.hpp" // detail::ZModulePrime
-#endif
+namespace fgs{
 
-// Boost libraries for some interesting number types
-#ifdef RATIONAL_SUPPORT
-   #include <boost/rational.hpp> // boost::rational
-#endif
+    // Alias to get the category of an iterator (random access, bidirectional,...)
+    template <typename Iterator>
+    using traits_category = typename std::iterator_traits<Iterator>::iterator_category;
+    // Alias to get the value type pointed by an iterator
+    template <typename Iterator>
+    using traits_type = typename std::iterator_traits<Iterator>::value_type;
 
-#if defined(MULTIPRECISION_SUPPORT)
-   #include <boost/multiprecision/cpp_int.hpp>  // cpp_int, cpp_rational
-   #include <boost/multiprecision/cpp_bin_float.hpp>  // cpp_bin_float
+    // Class Polynomial. CType is the type of the coefficients
+    // The container
+    template <typename CType>
+    class Polynomial{
 
-   typedef boost::multiprecision::cpp_int multiprecision_int;
-   typedef boost::multiprecision::cpp_rational multiprecision_rational;
-   typedef boost::multiprecision::cpp_bin_float<100> multiprecision_float;
-#elif defined(FAST_MULTIPRECISION_SUPPORT)
-   #include <boost/multiprecision/gmp.hpp>   // mpz_int, mpq_rational, mpf_float_100
+    private:
+        using Container = std::vector<CType>;
 
-   typedef boost::multiprecision::mpz_int multiprecision_int;
-   typedef boost::multiprecision::mpq_rational multiprecision_rational;
-   typedef boost::multiprecision::mpf_float_100 multiprecision_float;
-#endif
+        Container coeffs;  // Actual coefficients of the polynomial
+        char var = 'x';   // Letter that identifies the variable
 
-namespace detail{
+        // Helper function to adjust the degree, so the last coefficient is not 0
+        void adjust_degree (){
+            while (coeffs.back() == value_type(0) && coeffs.size() > 1)
+                coeffs.pop_back();
+        }
 
-   // Alias to get the category of an iterator (random access, bidirectional,...)
-   template <typename Iterator>
-   using traits = typename std::iterator_traits<Iterator>::iterator_category;
+        // Helper constructor for input iterators acceptance
+        template <typename InputIt>
+        Polynomial (InputIt first, InputIt last, std::input_iterator_tag)
+            : coeffs(first, last) {
+            adjust_degree();
+        }
 
-   // Class Polynomial. CType is the type of the coefficients
-   template <typename CType, typename Container = std::vector<CType>>
-   class Polynomial{
+    public:
 
-      public:
+        // We make every template specialization a friend class
+        template <typename CType2>
+        friend class Polynomial;
 
-         // typedefs for the value_type (coefficients) and the size_type
-         typedef typename Container::value_type value_type;
-         typedef typename Container::size_type size_type;
+        // typedefs for the member types (just get the ones from the
+        // underlined container).
+        using value_type                = typename Container::value_type;
+        using allocator_type            = typename Container::allocator_type;
+        using size_type                 = typename Container::size_type;
+        using difference_type           = typename Container::difference_type;
+        using reference                 = typename Container::reference;
+        using const_reference           = typename Container::const_reference;
+        using pointer                   = typename Container::pointer;
+        using const_pointer             = typename Container::const_pointer;
+        using iterator                  = typename Container::iterator;
+        using const_iterator            = typename Container::const_iterator;
+        using reverse_iterator          = typename Container::reverse_iterator;
+        using const_reverse_iterator    = typename Container::const_reverse_iterator;
 
-         // typedefs for iterator validity
-         typedef typename Container::iterator iterator;
-         typedef typename Container::const_iterator const_iterator;
-         typedef typename Container::reverse_iterator reverse_iterator;
-         typedef typename Container::const_reverse_iterator const_reverse_iterator;
+        // Some constructors
+        explicit Polynomial ()
+            : coeffs(1, value_type(0)) {}
+        template <typename U>
+        explicit Polynomial (const U& x)
+            : coeffs(1, value_type(x)) {}
+        Polynomial (std::initializer_list<value_type> l)
+            : coeffs(l) {
+            adjust_degree();
+        }
 
-         // Some constructors
-         explicit Polynomial (const char& c = 'x') : var(c), coeffs(1, 0){}
-         Polynomial (std::initializer_list<value_type> l, char c = 'x') : var(c), coeffs(l) {adjust_degree();}
+        // Range constructor using tag dispatching for input iterators
+        template <typename InputIt>
+        Polynomial (InputIt first, InputIt last)
+            : Polynomial(first, last, traits_category<InputIt>()) {}
 
-         template <typename InputIterator>
-         Polynomial (InputIterator first, InputIterator last, char c = 'x')
-         : Polynomial(first, last, c, traits<InputIterator>()) {}
+        // Constructor using the elements of a container (in the future
+        // also ranges will be accepted)
+        template <template<typename...> typename Cont, typename ...TArgs,
+                    typename = std::enable_if_t<aux::is_iterable_v<Cont<TArgs...>>>>
+        explicit Polynomial (const Cont<TArgs...>& cont)
+            : Polynomial(std::begin(cont), std::end(cont)) {}
 
-         value_type get_coefficient (size_type i) const{
-            return (i<coeffs.size()) ? coeffs[i] : static_cast<value_type>(0);
-         }
+        reference operator[] (size_type i){
+            return coeffs[i];
+        }
+        const_reference operator[] (size_type i) const{
+            return coeffs[i];
+        }
 
-         void set_coefficient (size_type i, value_type elem){
-            if (i>=coeffs.size()){
-               coeffs.resize(i+1, 0);
-            }
+        reference get_coefficient (size_type i) {
+            return coeffs.at(i);
+        }
+        const_reference get_coefficient (size_type i) const{
+            return coeffs.at(i);
+        }
+
+        reference first() {
+            return coeffs.front();
+        }
+        const_reference first() const{
+            return coeffs.front();
+        }
+
+        reference last() {
+            return coeffs.back();
+        }
+        const_reference last() const{
+            return coeffs.back();
+        }
+
+        void set_coefficient (size_type i, const value_type& elem){
+            if (i >= coeffs.size())
+                coeffs.resize(i+1, value_type(0));
 
             coeffs[i] = elem;
             adjust_degree();
-         }
+        }
 
-         char get_variable () const{
+        char get_variable () const noexcept{
             return var;
-         }
+        }
 
-         void set_variable (const char& c) {
+        void set_variable (char c) noexcept{
             var = c;
-         }
+        }
 
-         size_type degree () const{
+        size_type degree () const noexcept{
             return coeffs.size()-1;
-         }
+        }
 
-         /* Evaluates the polynomial for the value x using the Horner's
-          * polynomial evaluation scheme.
-          *
-          * RType is the type of the evaluation
-          */
-         template<typename RType>
-         RType evaluate_at (const RType& x) const{
-            RType res = static_cast<RType>(coeffs.back());
-            for (size_type i=coeffs.size()-1; i>0; --i){
-               res = static_cast<RType>(coeffs[i-1]) + res*x;
-            }
+        /* Evaluates the polynomial for the value x using the Horner's
+         * polynomial evaluation scheme.
+         *
+         * RType is the type of the evaluation
+         */
+        template<typename RType>
+        auto evaluate_at (const RType& x) const{
+            using Common = std::common_type_t<CType, RType>;
+            Common res(coeffs.back());
+
+            for (size_type i=coeffs.size()-1; i>0; --i)
+                res = Common(coeffs[i-1]) + res*Common(x);
 
             return res;
-         }
+        }
 
-         /* Enable natural evaluation of a mathematical function, so you
-          * can write p(x) instead of p.evaluate_at(x). RType is the type
-          * of the evaluation
-          */
-         template<typename RType>
-         RType operator() (const RType& x) const{
-            return (*this).evaluate_at(x);
-         }
+        /* Enable natural evaluation of a mathematical function, so you
+         * can write p(x) instead of p.evaluate_at(x). RType is the type
+         * of the evaluation
+         */
+        template<typename RType>
+        auto operator() (const RType& x) const{
+            return evaluate_at(x);
+        }
 
-         // Operator overloadings for polynomials arithmetic
-         Polynomial& operator+= (const Polynomial& pol){
-            size_type size = pol.coeffs.size();
-            if (size > coeffs.size()) coeffs.resize(size, 0);
+        // Unary + and - operators
+        Polynomial operator+() const{
+            return Polynomial(*this);
+        }
+        Polynomial operator-() const{
+            return Polynomial(*this) *= -1;
+        }
 
-            for (size_type i=0; i<size; ++i){
-               coeffs[i] += pol.coeffs[i];
-            }
+        // Operator overloadings for polynomials arithmetic
+        template <typename T>
+        Polynomial& operator+= (const Polynomial<T>& pol){
+            coeffs.resize(std::max(coeffs.size(), pol.coeffs.size()), value_type(0));
 
-            if (size == coeffs.size()) adjust_degree();
+            for (size_type i=0; i<pol.coeffs.size(); ++i)
+                coeffs[i] += value_type(pol.coeffs[i]);
 
+            adjust_degree();
             return *this;
-         }
+        }
 
-         Polynomial& operator-= (const Polynomial& pol){
-            size_type size = pol.coeffs.size();
-            if (size > coeffs.size()) coeffs.resize(size, 0);
+        template <typename T>
+        Polynomial& operator-= (const Polynomial<T>& pol){
+            coeffs.resize(std::max(coeffs.size(), pol.coeffs.size()), value_type(0));
 
-            for (size_type i=0; i<size; ++i){
-               coeffs[i] -= pol.coeffs[i];
-            }
+            for (size_type i=0; i<pol.coeffs.size(); ++i)
+                coeffs[i] -= value_type(pol.coeffs[i]);
 
-            if (size == coeffs.size()) adjust_degree();
-
+            adjust_degree();
             return *this;
-         }
+        }
 
-         Polynomial& operator*= (const Polynomial& pol){
-            coeffs.resize(coeffs.size()+pol.coeffs.size()-1, 0);
+        template <typename T>
+        Polynomial& operator*= (const Polynomial<T>& pol){
+            coeffs.resize(coeffs.size()+pol.coeffs.size()-1, value_type(0));
 
             for (int i=coeffs.size()-pol.coeffs.size(); i>=0; --i){
-               for (size_type j=pol.coeffs.size()-1; j>0; --j){
-                  coeffs[i+j] += coeffs[i]*pol.coeffs[j];
-               }
-               coeffs[i] = coeffs[i]*pol.coeffs[0];
+                for (size_type j=pol.coeffs.size()-1; j>0; --j)
+                    coeffs[i+j] += coeffs[i]*value_type(pol.coeffs[j]);
+                coeffs[i] = coeffs[i]*value_type(pol.coeffs[0]);
             }
 
             return *this;
-         }
+        }
 
-         Polynomial& operator/= (const Polynomial& pol){
+        template <typename T>
+        Polynomial& operator/= (const Polynomial<T>& pol){
             if (coeffs.size() < pol.coeffs.size()){
-               coeffs.resize(1);
-               coeffs[0] = 0;
-               return *this;
+                coeffs.resize(1);
+                coeffs[0] = value_type(0);
+                return *this;
             }
 
-            Container coc(coeffs.size()-pol.coeffs.size()+1, 0);
+            Container coc(coeffs.size()-pol.coeffs.size()+1, value_type(0));
 
             for (int i=coc.size()-1; i>=0; --i){
-               coc[i] = coeffs[pol.coeffs.size()+i-1]/pol.coeffs.back();
-               for (int j=pol.coeffs.size()-2; j>=0; --j){
-                  coeffs[i+j] -= pol.coeffs[j]*coc[i];
-               }
+                coc[i] = coeffs[pol.coeffs.size()+i-1]/value_type(pol.coeffs.back());
+                for (int j=pol.coeffs.size()-2; j>=0; --j)
+                    coeffs[i+j] -= value_type(pol.coeffs[j])*coc[i];
             }
 
             coeffs = std::move(coc);
             return *this;
-         }
+        }
 
-         Polynomial& operator%= (const Polynomial& pol){
-            if (coeffs.size() < pol.coeffs.size()) return *this;
+        template <typename T>
+        Polynomial& operator%= (const Polynomial<T>& pol){
+            if (coeffs.size() < pol.coeffs.size())
+                return *this;
 
             value_type coc;
 
             for (int i=coeffs.size()-pol.coeffs.size(); i>=0; --i){
-               coc = coeffs[pol.coeffs.size()+i-1]/pol.coeffs.back();
-               for (int j=pol.coeffs.size()-1; j>=0; --j){
-                  coeffs[i+j] -= pol.coeffs[j]*coc;
-               }
+                coc = coeffs[pol.coeffs.size()+i-1]/value_type(pol.coeffs.back());
+                for (int j=pol.coeffs.size()-1; j>=0; --j)
+                    coeffs[i+j] -= value_type(pol.coeffs[j])*coc;
             }
 
             adjust_degree();
             return *this;
-         }
+        }
 
-         const Polynomial operator+ (const Polynomial& pol) const{
-            return Polynomial(*this) += pol;
-         }
+        template <typename U>
+        Polynomial& operator+=(const U& other){
+            coeffs[0] += value_type(other);
+            return *this;
+        }
+        template <typename U>
+        Polynomial& operator-=(const U& other){
+            coeffs[0] -= value_type(other);
+            return *this;
+        }
+        template <typename U>
+        Polynomial& operator*=(const U& other){
+            std::transform(coeffs.begin(), coeffs.end(), coeffs.begin(),
+                            [&other](const value_type& val){
+                                return val*value_type(other);
+                            });
+            return *this;
+        }
+        template <typename U>
+        Polynomial& operator/=(const U& other){
+            std::transform(coeffs.begin(), coeffs.end(), coeffs.begin(),
+                            [&other](const value_type& val){
+                                return val/value_type(other);
+                            });
+            return *this;
+        }
+        template <typename U>
+        Polynomial& operator%=(const U&){
+            coeffs.resize(1, 0);
+            return *this;
+        }
 
-         const Polynomial operator- (const Polynomial& pol) const{
-            return Polynomial(*this) -= pol;
-         }
-
-         const Polynomial operator* (const Polynomial& pol) const{
-            return Polynomial(*this) *= pol;
-         }
-
-         const Polynomial operator/ (const Polynomial& pol) const{
-            return Polynomial(*this) /= pol;
-         }
-
-         const Polynomial operator% (const Polynomial& pol) const{
-            return Polynomial(*this) %= pol;
-         }
-
-         bool operator== (const Polynomial& pol) const{
-            if (coeffs.size() != pol.coeffs.size()) return false;
-
-            for (size_type i=0; i<coeffs.size(); ++i){
-               if (coeffs[i] != pol.coeffs[i]) return false;
-            }
-
-            return true;
-         }
-
-         bool operator!= (const Polynomial& pol) const{
-            return !(*this == pol);
-         }
-
-         /* Modifies the coefficients so they match the polynomial to the
-          * power of n (n must be unsigned type)
-          */
-         template <typename UInt>
-         Polynomial pow(const Polynomial& pol, const std::make_unsigned_t<UInt>& n) {
+        /* Modifies the coefficients so they match the polynomial to the
+         * power of n (n must be unsigned type)
+         */
+        Polynomial& pow(unsigned n) {
             if (n==0){
-               coeffs[0] = 1;
-               coeffs.resize(1);
-               return *this;
+                coeffs[0] = value_type(1);
+                coeffs.resize(1);
+                return *this;
             }
 
-            for (unsigned i=1; i<n; ++i){
-               (*this) *= (*this);
-            }
+            Polynomial aux(*this);
+
+            for (unsigned i=1; i<n; ++i)
+                (*this) *= aux;
 
             return *this;
-         }
+        }
 
-         /* Modifies the coefficients so they match the derivative of
-          * the polynomial defined by *this
-          */
-         Polynomial& differentiate (){
-            if (coeffs.size() == 1){
-               coeffs[0] = 0;
-            }
+        /* Modifies the coefficients so they match the derivative of
+         * the polynomial defined by *this
+         */
+        Polynomial& differentiate (){
+            if (coeffs.size() == 1)
+                coeffs[0] = value_type(0);
             else{
-               for (size_type i=1; i<coeffs.size(); ++i){
-                  coeffs[i-1] = coeffs[i]*static_cast<value_type>(i);
-               }
-               coeffs.resize(coeffs.size()-1);
+                for (size_type i=1; i<coeffs.size(); ++i)
+                    coeffs[i-1] = coeffs[i]*value_type(i);
+                coeffs.resize(coeffs.size()-1);
             }
 
             return *this;
-         }
+        }
 
-         /* Modifies the coefficients so they match the antiderivative, with
-          * integration constant equals to c
-          */
-         Polynomial& integrate_const (const value_type& c = 0){
-            if (coeffs.size()==1 && coeffs[0]==0){
-               coeffs[0] = c;
-               return *this;
+        /* Modifies the coefficients so they match the antiderivative, with
+         * integration constant equals to c (0 by default)
+         */
+        Polynomial& integrate_const (const value_type& c = value_type(0)){
+            if (coeffs.size()==1 && coeffs[0]==value_type(0)){
+                coeffs[0] = c;
+                return *this;
             }
 
             coeffs.resize(coeffs.size()+1);
 
-            for (size_type i=coeffs.size()-1; i>0; --i){
-               coeffs[i] = coeffs[i-1]/static_cast<value_type>(i);
-            }
+            for (size_type i=coeffs.size()-1; i>0; --i)
+                coeffs[i] = coeffs[i-1]/value_type(i);
             coeffs[0] = c;
 
             return *this;
-         }
+        }
 
-         /* Modifies the coefficients so they match the antiderivative that
-          * meets the condition of F(x)=y (where F is the antiderivative).
-          * RType is the type of the evaluation
-          */
-         template<typename RType>
-         Polynomial& integrate_point (const RType& x, const RType& y){
-            coeffs[0] = static_cast<value_type>(y - (*this).integrate_const().evaluate_at(x));
+        /* Modifies the coefficients so they match the antiderivative that
+         * meets the condition of F(x)=y (where F is the antiderivative).
+         * RType is the type of the evaluation
+         */
+        template<typename DType, typename RType>
+        Polynomial& integrate_point (const DType& x, const RType& y){
+            using Common = std::common_type_t<CType, DType, RType>;
+            coeffs[0] = value_type(Common(y) - Common((*this).integrate_const().evaluate_at(x)));
             return *this;
-         }
+        }
 
-         /* Calculates the definite integral between two values of the
-          * polynomial. RType is the type of the evaluation
-          */
-         template <typename RType>
-         RType definite_integral (const RType& lower_bound, const RType& upper_bound){
-            Polynomial p(*this);
-            p.integrate_const();
-            return p.evaluate_at(upper_bound) - p.evaluate_at(lower_bound);
-         }
-
-         // Swap two polynomials
-         friend void swap (Polynomial& lhs, Polynomial& rhs){
+        // Swap two polynomials
+        friend void swap (Polynomial& lhs, Polynomial& rhs){
             using std::swap;
 
             swap(lhs.coeffs, rhs.coeffs);
             swap(lhs.var, rhs.var);
-         }
+        }
 
-         // friend std::istream& operator>>(std::istream& is, Polynomial& pol);
+        // Conversion from a Polynomial to other of different value_type
+        template <typename CType2>
+        operator Polynomial<CType2> () const{   // NOLINT(hicpp-explicit-conversions)
+            return Polynomial<CType2>(this->begin(), this->end());
+        }
 
-         /* Pretty print for the polynomial
-          *
-          * If UNICODE_SUPPORT is enabled, the polynomial will be printed
-          * with superscript characters instead of the expresion "^n"
-          */
-         friend std::ostream& operator<< (std::ostream& os, const Polynomial& pol){
-            if (pol.degree() == 0){
-               os << pol.get_coefficient(0);
-            }
+        /* TODO: Decide a good way to input a polynomial (or let the user
+         * implement it itself).
+         *
+         * One idea could be to implement a parser, so it would work for std::cin
+         * and a new constructor.
+         */
+        // friend std::istream& operator>>(std::istream& is, Polynomial& pol);
+
+        /* Pretty print for the polynomial
+         *
+         * If UNICODE_SUPPORT is enabled, the polynomial will be printed
+         * with superscript characters instead of the expresion "^n"
+         */
+        friend std::ostream& operator<< (std::ostream& os, const Polynomial& pol){
+            auto print_coeff = [&os](auto c){
+                if constexpr (aux::is_complex_v<decltype(c)>){
+                    using v_type = typename decltype(c)::value_type;
+
+                    if (c.imag() != v_type(0)){
+                        os << std::noshowpos << "+(" << c.real();
+                        if (c.imag() > v_type(0))
+                            os << "+i";
+                        else
+                            os << "-i";
+                        os << std::abs(c.imag()) << ")" << std::showpos;
+                    }
+                    else
+                        os << c.real();
+                }
+                else
+                    os << c;
+            };
+
+            if (pol.degree() == 0)
+                print_coeff(pol.first());
             else{
-               if (pol.get_coefficient(pol.degree()) == -1){
-                  os << "-";
-               }
-               else if (pol.get_coefficient(pol.degree()) != 1){
-                  os << pol.get_coefficient(pol.degree());
-               }
-               os << pol.get_variable() << aux::exponent_string(pol.degree());
+                os << std::noshowpos;
 
-               for (size_type i=pol.degree()-1; i>0; --i){
-                  if (pol.get_coefficient(i) != 0){
-                     if (pol.get_coefficient(i) > 0){
-                        os << "+";
+                if (pol.last() == value_type(-1))
+                    os << "-";
+                else if (pol.last() != value_type(1))
+                    os << pol.last();
+                os << pol.get_variable() << aux::exponent_string(pol.degree());
 
-                        if (pol.get_coefficient(i) != 1){
-                           os << pol.get_coefficient(i);
-                        }
-                     }
-                     else if (pol.get_coefficient(i) == -1){
-                        os << "-";
-                     }
+                os << std::showpos;
 
-                     os << pol.get_variable() << aux::exponent_string(i);
-                  }
-               }
+                for (size_type i=pol.degree()-1; i>0; --i){
+                    if (pol[i] != value_type(0)){
+                        if (pol[i] == value_type(1))
+                            os << "+";
+                        else if (pol[i] == value_type(-1))
+                            os << "-";
+                        else if (pol[i] != value_type(0))
+                            print_coeff(pol[i]);
 
-               if (pol.get_coefficient(0) != 0){
-                  if (pol.get_coefficient(0) > 0){
-                     os << "+";
-                  }
-                  os << pol.get_coefficient(0);
-               }
+                        os << pol.get_variable() << aux::exponent_string(i);
+                    }
+                }
+
+                if (pol.first() != value_type(0))
+                    print_coeff(pol.first());
             }
 
+            os << std::noshowpos;
             return os;
-         }
+        }
 
-         /* Iterator functions to iterate through a polynomial
-          *
-          * It's based on the vector's iterator, so this is just a wrapper
-          * for polynomials
-          */
-         iterator begin(){
+        /* Iterator functions to iterate through a polynomial
+         *
+         * It's based on the vector's iterator, so this is just a wrapper
+         * for polynomials
+         */
+        iterator begin(){
             return coeffs.begin();
-         }
-         const_iterator begin() const{
+        }
+        const_iterator begin() const{
             return coeffs.begin();
-         }
+        }
 
-         iterator end(){
+        iterator end(){
             return coeffs.end();
-         }
-         const_iterator end() const{
+        }
+        const_iterator end() const{
             return coeffs.end();
-         }
+        }
 
-         reverse_iterator rbegin(){
+        reverse_iterator rbegin(){
             return coeffs.rbegin();
-         }
-         const_reverse_iterator rbegin() const{
+        }
+        const_reverse_iterator rbegin() const{
             return coeffs.rbegin();
-         }
+        }
 
-         reverse_iterator rend(){
+        reverse_iterator rend(){
             return coeffs.rend();
-         }
-         const_reverse_iterator rend() const{
+        }
+        const_reverse_iterator rend() const{
             return coeffs.rend();
-         }
+        }
 
-         const_iterator cbegin(){
+        const_iterator cbegin(){
             return coeffs.cbegin();
-         }
-
-         const_iterator cend(){
+        }
+        const_iterator cend(){
             return coeffs.cend();
-         }
+        }
 
-         const_reverse_iterator crbegin(){
+        const_reverse_iterator crbegin(){
             return coeffs.crbegin();
-         }
-
-         const_reverse_iterator crend(){
+        }
+        const_reverse_iterator crend(){
             return coeffs.crend();
-         }
+        }
 
-      private:
+    };
 
-         char var;   // Letter that identifies the variable
-         Container coeffs;  // Actual coefficients of the polynomial
 
-         // Helper function to adjust the degree, so the last coefficient is not 0
-         void adjust_degree (){
-            while (coeffs.back()==static_cast<value_type>(0) && coeffs.size()>1){
-               coeffs.pop_back();
+    template <typename CType1, typename CType2>
+    auto operator+(const Polynomial<CType1>& lhs, const Polynomial<CType2>& rhs){
+        return Polynomial<std::common_type_t<CType1, CType2>>(lhs) += rhs;
+    }
+    template <typename CType1, typename CType2>
+    auto operator-(const Polynomial<CType1>& lhs, const Polynomial<CType2>& rhs){
+        return Polynomial<std::common_type_t<CType1, CType2>>(lhs) -= rhs;
+    }
+    template <typename CType1, typename CType2>
+    auto operator*(const Polynomial<CType1>& lhs, const Polynomial<CType2>& rhs){
+        return Polynomial<std::common_type_t<CType1, CType2>>(lhs) *= rhs;
+    }
+    template <typename CType1, typename CType2>
+    auto operator/(const Polynomial<CType1>& lhs, const Polynomial<CType2>& rhs){
+        return Polynomial<std::common_type_t<CType1, CType2>>(lhs) /= rhs;
+    }
+    template <typename CType1, typename CType2>
+    auto operator%(const Polynomial<CType1>& lhs, const Polynomial<CType2>& rhs){
+        return Polynomial<std::common_type_t<CType1, CType2>>(lhs) %= rhs;
+    }
+
+
+    template <typename CType, typename U>
+    auto operator+(const Polynomial<CType>& lhs, const U& rhs){
+        return Polynomial<std::common_type_t<CType, U>>(lhs) += rhs;
+    }
+    template <typename CType, typename U>
+    auto operator-(const Polynomial<CType>& lhs, const U& rhs){
+        return Polynomial<std::common_type_t<CType, U>>(lhs) -= rhs;
+    }
+    template <typename CType, typename U>
+    auto operator*(const Polynomial<CType>& lhs, const U& rhs){
+        return Polynomial<std::common_type_t<CType, U>>(lhs) *= rhs;
+    }
+    template <typename CType, typename U>
+    auto operator/(const Polynomial<CType>& lhs, const U& rhs){
+        return Polynomial<std::common_type_t<CType, U>>(lhs) /= rhs;
+    }
+    template <typename CType, typename U>
+    auto operator%(const Polynomial<CType>& lhs, const U& rhs){
+        return Polynomial<std::common_type_t<CType, U>>(lhs) %= rhs;
+    }
+
+
+    template <typename CType, typename U>
+    auto operator+(const U& lhs, const Polynomial<CType>& rhs){
+        return Polynomial<std::common_type_t<CType, U>>(lhs) += rhs;
+    }
+    template <typename CType, typename U>
+    auto operator-(const U& lhs, const Polynomial<CType>& rhs){
+        return Polynomial<std::common_type_t<CType, U>>(lhs) -= rhs;
+    }
+    template <typename CType, typename U>
+    auto operator*(const U& lhs, const Polynomial<CType>& rhs){
+        return Polynomial<std::common_type_t<CType, U>>(lhs) *= rhs;
+    }
+    template <typename CType, typename U>
+    auto operator/(const U& lhs, const Polynomial<CType>& rhs){
+        return Polynomial<std::common_type_t<CType, U>>(lhs) /= rhs;
+    }
+    template <typename CType, typename U>
+    auto operator%(const U& lhs, const Polynomial<CType>& rhs){
+        return Polynomial<std::common_type_t<CType, U>>(lhs) %= rhs;
+    }
+
+    template <typename CType1, typename CType2>
+    bool operator==(const Polynomial<CType1>& lhs, const Polynomial<CType2>& rhs){
+        using Common = std::common_type_t<CType1, CType2>;
+        return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end(),
+        [](const Common& a, const Common& b){
+            return a == b;
+        });
+    }
+
+    template <typename CType1, typename CType2>
+    bool operator!=(const Polynomial<CType1>& lhs, const Polynomial<CType2>& rhs){
+        return !(lhs == rhs);
+    }
+
+    /* Like Polynomial::pow, but returning an rvalue
+     * (not modifying the original)
+     */
+    template <typename CType>
+    Polynomial<CType> pow(const Polynomial<CType>& pol, unsigned n) {
+        return Polynomial<CType>(pol).pow(n);
+    }
+
+    /* Like Polynomial::differentiate, but returning an rvalue
+     * (not modifying the original)
+     */
+    template <typename CType>
+    Polynomial<CType> differentiate (const Polynomial<CType>& pol){
+        return Polynomial<CType>(pol).differentiate();
+    }
+
+    /* Like Polynomial::integrate_const, but returning an rvalue
+     * (not modifying the original)
+     */
+    template <typename CType>
+    Polynomial<CType> integrate_const (const Polynomial<CType>& pol, const CType& c = CType(0)){
+        return Polynomial<CType>(pol).integrate_const(c);
+    }
+
+    /* Like Polynomial::integrate_point, but returning an rvalue
+     * (not modifying the original)
+     */
+    template <typename CType, typename RType>
+    Polynomial<CType> integrate_point (const Polynomial<CType>& pol, const RType& x, const RType& y){
+        return Polynomial<CType>(pol).integrate_point(x, y);
+    }
+
+    /* Calculates the definite integral between two values of the
+     * polynomial. RType is the type of the evaluation
+     */
+    template <typename CType, typename RType>
+    auto definite_integral (const Polynomial<CType>& pol, const RType& lower_bound, const RType& upper_bound){
+        Polynomial<CType> p(pol);
+        p.integrate_const();
+        return p.evaluate_at(upper_bound) - p.evaluate_at(lower_bound);
+    }
+
+    // GCD of two polynomials using Euclidean's algorithm
+    template <typename CType>
+    Polynomial<CType> gcd (Polynomial<CType> lhs, Polynomial<CType> rhs){
+        if (lhs==Polynomial<CType>())
+            return rhs;
+        if (rhs==Polynomial<CType>())
+            return lhs;
+
+        while (rhs.degree()>0 || rhs[0]!=CType(0)){
+            swap(lhs, rhs);
+            rhs %= lhs;
+        }
+
+        return lhs;
+    }
+
+    // LCM of two polynomials using Euclidean's algorithm
+    template <typename CType>
+    const Polynomial<CType> lcm (const Polynomial<CType>& lhs, const Polynomial<CType>& rhs){
+        return (lhs/gcd(lhs, rhs))*rhs;
+    }
+
+    namespace roots_aux{
+        static constexpr double tolerance = 1.0e-6;
+
+        template <typename CType, typename OutputIterator>
+        void durand_kerner(const Polynomial<CType>& p, OutputIterator out){
+            using RType = std::conditional_t<aux::is_complex_v<CType>, CType, std::complex<CType>>;
+
+            std::random_device rd;
+            std::mt19937 gen(rd());
+            std::uniform_real_distribution<typename RType::value_type> unif_magnitude(0.0, 1.0 +
+                std::abs(*std::max_element(p.begin(), p.end()-1, [](const auto& lhs, const auto& rhs){
+                    return std::abs(lhs) < std::abs(rhs);
+                })));
+            std::uniform_real_distribution<typename RType::value_type> unif_phase(0.0, 4.0*std::acos(0.0));
+
+            auto ret = std::make_pair(std::vector<RType>(p.degree()), std::vector<RType>(p.degree(), 0));
+            std::generate(ret.first.begin(), ret.first.end(), [&](){
+                return RType(std::polar(unif_magnitude(gen), unif_phase(gen)));
+            });
+
+            while ([&ret](){
+                for (std::size_t i=0; i<ret.first.size(); ++i)
+                    if (std::abs(ret.first[i] - ret.second[i]) >= tolerance)
+                        return true;
+                return false;
+            }()){
+                for (std::size_t i=0; i<ret.first.size(); ++i){
+                    ret.second[i] = ret.first[i];
+                    RType aux(1);
+
+                    for (std::size_t j=0; j<ret.first.size(); ++j)
+                        if (i != j)
+                            aux *= (ret.second[i] - ret.first[j]);
+
+                    ret.second[i] -= p(ret.first[i]) / aux;
+                }
+                std::swap(ret.first, ret.second);
             }
-         }
 
-         // Helper constructor for input iterators acceptance
-         template <typename InputIterator>
-         Polynomial (InputIterator first, InputIterator last, char c, std::input_iterator_tag)
-         : var(c), coeffs(first, last) {adjust_degree();}
+            *out = ret.first.front();
+            for (auto it = ret.first.begin()+1; it != ret.first.end(); ++it)
+                *++out = *it;
+        }
+    }
 
-   };
+    template <typename CType, typename OutputIterator>
+    void roots_of(const Polynomial<CType>& p, OutputIterator out){
+        using RType = std::conditional_t<aux::is_complex_v<CType>, CType, std::complex<CType>>;
 
-   /* Like Polynomial::pow, but returning an rvalue
-    * (not modifying the original)
-    */
-   template <typename CType>
-   const Polynomial<CType> pow(const Polynomial<CType>& pol, const unsigned n) {
-      return Polynomial<CType>(pol).pow(n);
-   }
+        // clang-format off
+        // For polynomials of degree less than 5, we will just use the formula
+        if (p.degree() == 1)
+            *out = -(p[0]/p[1]);
+        else if (p.degree() == 2){
+            RType discriminant(std::sqrt(RType(p[1]*p[1] - RType(4)*p[0]*p[2])));
+            *out = (-p[1] + discriminant) / (RType(2)*p[2]);
+            *++out = (-p[1] - discriminant) / (RType(2)*p[2]);
+        }
+        /*else if (p.degree() == 3){
+            // Taken from https://www.quora.com/Is-there-a-simple-method-of-solving-a-cubic-equation-that-a-16-year-old-student-can-be-taught
+            RType Q = (RType(3.0)*p[3]*p[1]-p[2]*p[2])/(RType(9.0)*p[3]*p[3]);
+            RType R = (RType(9.0)*p[3]*p[2]*p[1]-RType(27.0)*p[3]*p[3]*p[0]-RType(2.0)*p[2]*p[2]*p[2])/(RType(54.0)*p[3]*p[3]*p[3]);
+            RType S = std::pow(R+std::sqrt(Q*Q*Q+R*R), RType(1.0/3.0));
+            RType T = std::pow(R-std::sqrt(Q*Q*Q+R*R), RType(1.0/3.0));
 
-   /* Like Polynomial::differentiate, but returning an rvalue
-    * (not modifying the original)
-    */
-   template <typename CType>
-   const Polynomial<CType> differentiate (const Polynomial<CType>& pol){
-      return Polynomial<CType>(pol).differentiate();
-   }
+            *out = S + T - p[2]/(RType(3.0)*p[3]);
+            *++out = -(S+T)/RType(2.0) - p[2]/(RType(3.0)*p[3]) + RType(0.0, std::sqrt(3.0)/2.0)*(S-T);
+            *++out = -(S+T)/RType(2.0) - p[2]/(RType(3.0)*p[3]) - RType(0.0, std::sqrt(3.0)/2.0)*(S-T);
+        }
+        else if (p.degree() == 4){ // FIXME: Wrong calculations, will use Durand-Kerner meanwhile
+            // Taken from https://math.stackexchange.com/questions/785/is-there-a-general-formula-for-solving-4th-degree-equations-quartic
+            RType p1 = RType(2.0)*p[2]*p[2]*p[2]-RType(9.0)*p[3]*p[2]*p[1]+RType(27.0)*p[4]*p[1]*p[1]+RType(27.0)*p[3]*p[3]*p[0]-RType(72.0)*p[4]*p[2]*p[0];
+            RType p2 = p1 + std::sqrt(RType(-4.0)*std::pow(RType(p[2]*p[2]-RType(3.0)*p[3]*p[1]+RType(12.0)*p[4]*p[0]), 3)+p1*p1);
+            RType p3 = (p[2]*p[2]-RType(3.0)*p[3]*p[1]+RType(12.0)*p[5]*p[0])/(RType(3.0)*p[4]*std::pow(p2/RType(2.0), RType(1.0/3.0))) + std::pow(p2/RType(2.0), RType(1.0/3.0))/(RType(3.0)*p[4]);
+            RType p4 = std::sqrt(RType((p[3]*p[3])/(RType(4.0)*p[4]*p[4])-(RType(2.0)*p[2])/(RType(3.0)*p[4])+p3));
+            RType p5 = (p[3]*p[3])/(RType(2.0)*p[4]*p[4])-(RType(4.0)*p[2])/(RType(3.0)*p[4])-p3;
+            RType p6 = (-(p[3]*p[3]*p[3])/(p[4]*p[4]*p[4])+(RType(4.0)*p[3]*p[2])/(p[4]*p[4])-(RType(8.0)*p[1])/p[4])/(RType(4.0)*p4);
 
-   /* Like Polynomial::integrate_const, but returning an rvalue
-    * (not modifying the original)
-    */
-   template <typename CType>
-   const Polynomial<CType> integrate_const (const Polynomial<CType>& pol, const CType& c = 0){
-      return Polynomial<CType>(pol).integrate_const(c);
-   }
+            *out = -p[3]/(RType(4.0)*p[4])-p4/RType(2.0)-std::sqrt(p5-p6)/RType(2.0);
+            *++out = -p[3]/(RType(4.0)*p[4])-p4/RType(2.0)+std::sqrt(p5-p6)/RType(2.0);
+            *++out = -p[3]/(RType(4.0)*p[4])+p4/RType(2.0)-std::sqrt(p5+p6)/RType(2.0);
+            *++out = -p[3]/(RType(4.0)*p[4])+p4/RType(2.0)+std::sqrt(p5+p6)/RType(2.0);
+        }*/
+        else if (p.degree() >= 3)
+            // For polynomials of degree higher than 3, we will use Durand-Kerner method
+            roots_aux::durand_kerner(p/p.last(), out);
+        // clang-format on
+    }
 
-   /* Like Polynomial::integrate_point, but returning an rvalue
-    * (not modifying the original)
-    */
-   template <typename CType, typename RType>
-   const Polynomial<CType> integrate_point (const Polynomial<CType>& pol, const RType& x, const RType& y){
-      return Polynomial<CType>(pol).integrate_point(x, y);
-   }
+    template <typename CType, template <typename...> typename Cont = std::vector>
+    auto roots_of (const Polynomial<CType>& pol) {
+        using RType = std::conditional_t<aux::is_complex_v<CType>, CType, std::complex<CType>>;
 
-   // GCD of two polynomials using Euclidean's algorithm
-   template <typename CType>
-   const Polynomial<CType> gcd (const Polynomial<CType>& lhs, const Polynomial<CType>& rhs){
-      if (lhs==Polynomial<CType>()) return rhs;
-      if (rhs==Polynomial<CType>()) return lhs;
+        Cont<RType> roots;
+        roots_of(pol, std::back_inserter(roots));
 
-      auto p1(lhs);
-      auto p2(rhs);
+        return roots;
+    }
 
-      while (p2.degree()>0 || p2.get_coefficient(0)!=0){
-         swap(p1, p2);
-         p2 %= p1;
-      }
+    // A set of functions to construct a polynomial
 
-      return p1;
-   }
+    template <typename InputIt>
+    auto make_polynomial_by_roots(InputIt first, InputIt last){
+        using CType = typename std::iterator_traits<InputIt>::value_type;
 
-   // LCM of two polynomials using Euclidean's algorithm
-   template <typename CType>
-   const Polynomial<CType> lcm (const Polynomial<CType>& lhs, const Polynomial<CType>& rhs){
-      return (lhs/gcd(lhs, rhs))*rhs;
-   }
+        Polynomial<CType> ret{CType(1)};
+        for (; first != last; ++first)
+            ret *= Polynomial<CType>{-CType(*first), CType(1)};
 
-   // Typedefs for coefficients with integer types
-   typedef Polynomial<std::int8_t> polynomial_int8;
-   typedef Polynomial<std::int16_t> polynomial_int16;
-   typedef Polynomial<std::int32_t> polynomial_int32;
-   typedef Polynomial<std::int64_t> polynomial_int64;
+        return ret;
+    }
 
-   // Typedefs for coefficients in floating point (real numbers)
-   typedef Polynomial<float> polynomial_float;
-   typedef Polynomial<double> polynomial_double;
-   typedef Polynomial<long double> polynomial_long_double;
+    template <typename CType, template<typename...> typename Cont>
+    auto make_polynomial_by_roots(const Cont<CType>& v){
+        return make_polynomial_by_roots(v.begin(), v.end());
+    }
 
-   // Typedefs for extra types (boost::rational and std::complex)
-#ifdef RATIONAL_SUPPORT
-   typedef Polynomial<boost::rational<std::int8_t>> polynomial_rational_int8;
-   typedef Polynomial<boost::rational<std::int16_t>> polynomial_rational_int16;
-   typedef Polynomial<boost::rational<std::int32_t>> polynomial_rational_int32;
-   typedef Polynomial<boost::rational<std::int64_t>> polynomial_rational_int64;
-#endif
+    template <typename CType>
+    auto make_polynomial_by_roots(std::initializer_list<CType> l){
+        return make_polynomial_by_roots(l.begin(), l.end());
+    }
 
-   typedef Polynomial<std::complex<float>> polynomial_complex_float;
-   typedef Polynomial<std::complex<double>> polynomial_complex_double;
-   typedef Polynomial<std::complex<long double>> polynomial_complex_long_double;
+    namespace lagrange_aux{
+        // If it is not in [first, last), then behaviour is undefined
+        // If two elements in [first, last) are equal, then behaviour is undefined
+        template <typename InputIt>
+        auto lagrange_base (InputIt first, InputIt last, InputIt it){
+            using CType = typename std::iterator_traits<InputIt>::value_type;
+            Polynomial<CType> p{CType(1)};
 
-   /* Typedefs for multiprecision polynomial using boost multiprecision
-    * library or fast multiprecision using gmp library
-    */
-#if defined(MULTIPRECISION_SUPPORT) || defined(FAST_MULTIPRECISION_SUPPORT)
-   typedef Polynomial<multiprecision_int> polynomial_multiprecision_int;
-   typedef Polynomial<multiprecision_rational> polynomial_multiprecision_rational;
-   typedef Polynomial<multiprecision_float> polynomial_multiprecision_float;
-   typedef Polynomial<std::complex<multiprecision_float>> polynomial_multiprecision_complex;
-#endif
+            for (; first != it; ++first)
+                p *= Polynomial<CType>{- *first, CType(1)}/(*it- *first);
 
-#ifdef Z_MODULE_SUPPORT
-   template<auto N>
-   using polynomial_modular = Polynomial<ZModule<N>>;
-   template<auto N>
-   using polynomial_modular_prime = Polynomial<ZModulePrime<N>>;
-#endif
+            for (++first; first != last; ++first)
+                p *= Polynomial<CType>{- *first, CType(1)}/(*it- *first);
 
-}  // namespace detail
+            return p;
+        }
+
+        // If nodes.size() <= i, then behaviour is undefined
+        // If nodes[j] == nodes[k] for some j != k, then behaviour is undefined
+        template <typename CType, template<typename...> typename Cont>
+        auto lagrange_base (const Cont<CType>& nodes, typename Cont<CType>::size_type i){
+            Polynomial<CType> p{CType(1)};
+
+            for (decltype(i) j=0; j < i; ++j)
+                p *= Polynomial<CType>{-nodes[j], CType(1)}/(nodes[i]-nodes[j]);
+
+            for (decltype(i) j=i+1; j < nodes.size(); ++j)
+                p *= Polynomial<CType>{-nodes[j], CType(1)}/(nodes[i]-nodes[j]);
+
+            return p;
+        }
+    }
+
+    // If distance(first1, last1) != distance(first2, last2), then behaviour is undefined
+    template <typename InputIt1, typename InputIt2>
+    auto lagrange_polynomial (InputIt1 first1, InputIt1 last1, InputIt2 first2, InputIt2 last2){
+        using Common = std::common_type_t<traits_type<InputIt1>, traits_type<InputIt2>>;
+        Polynomial<Common> p{Common(0)};
+
+        for (auto it = first1; first2 != last2; ++it, ++first2)
+            p += Common(*first2) * Polynomial<Common>{std::move(lagrange_aux::lagrange_base(first1, last1, it))};
+
+        return p;
+    }
+
+    // If vx.size() != vy.size(), then behaviour is undefined
+    template <typename DType, typename RType, template<typename...> typename Cont1, template<typename...> typename Cont2>
+    auto lagrange_polynomial (const Cont1<DType>& vx, const Cont2<RType>& vy){
+        using Common = std::common_type_t<DType, RType>;
+        Polynomial<Common> p{Common(0)};
+
+        for (typename Cont2<RType>::size_type i=0; i < vy.size(); ++i)
+            p += Common(vy[i]) * Polynomial<Common>{std::move(lagrange_aux::lagrange_base(vx, i))};
+
+        return p;
+    }
+
+    // If vx.size() != vy.size(), then behaviour is undefined
+    template <typename DType, typename RType>
+    auto lagrange_polynomial (std::initializer_list<DType> vx, std::initializer_list<RType> vy){
+        return lagrange_polynomial(vx.begin(), vx.end(), vy.begin(), vy.end());
+    }
+
+    // If vx.size() != vy.size(), then behaviour is undefined
+    template <typename DType, typename RType, template<typename...> typename Cont>
+    auto lagrange_polynomial (const Cont<DType>& vx, std::initializer_list<RType> vy){
+        return lagrange_polynomial(vx.begin(), vx.end(), vy.begin(), vy.end());
+    }
+
+    // If vx.size() != vy.size(), then behaviour is undefined
+    template <typename DType, typename RType, template<typename...> typename Cont>
+    auto lagrange_polynomial (std::initializer_list<DType> vx, const Cont<RType>& vy){
+        return lagrange_polynomial(vx.begin(), vx.end(), vy.begin(), vy.end());
+    }
+
+    template <typename DType, typename Func, template<typename...> typename Cont = std::vector,
+                typename = std::enable_if_t<std::is_invocable_v<Func, DType>>>
+    auto lagrange_polynomial (const Cont<DType>& nodes, Func&& f){
+        std::vector<std::invoke_result_t<Func, DType>> img(nodes.size());
+        std::transform(nodes.begin(), nodes.end(), img.begin(), std::forward<Func>(f));
+
+        return lagrange_polynomial(nodes, img);
+    }
+
+    template <typename InputIt, typename Func,
+                typename = std::enable_if_t<std::is_invocable_v<Func, traits_type<InputIt>>>>
+    auto lagrange_polynomial (InputIt first, InputIt last, Func&& f){
+        std::vector<std::invoke_result_t<Func, traits_type<InputIt>>> img(std::distance(first, last));
+        std::transform(first, last, img.begin(), std::forward<Func>(f));
+
+        return lagrange_polynomial(first, last, img.begin(), img.end());
+    }
+
+    template <typename DType, typename Func,
+                typename = std::enable_if_t<std::is_invocable_v<Func, DType>>>
+    auto lagrange_polynomial (std::initializer_list<DType> nodes, Func&& f){
+        return lagrange_polynomial(nodes.begin(), nodes.end(), std::forward<Func>(f));
+    }
+
+    namespace taylor_aux{
+        constexpr unsigned long factorial (unsigned long n){
+            return (n == 0) ? 1 : n*factorial(n-1);
+        }
+    }
+
+    template <typename DType, typename InputIt>
+    auto taylor_polynomial(DType a, InputIt first, InputIt last){
+        using Common = std::common_type_t<DType, typename std::iterator_traits<InputIt>::value_type>;
+
+        Polynomial<Common> ret{Common(*first)}, power{Common(1)}, aux{Common(-a), Common(1)};
+        for (++first; first != last; ++first){
+            power *= aux;
+            ret += power*(Common(*first)/Common(taylor_aux::factorial(power.degree())));
+        }
+
+        return ret;
+    }
+
+    template <typename DType, typename RType, template<typename...> typename Cont>
+    auto taylor_polynomial(DType a, const Cont<RType>& v){
+        return taylor_polynomial(a, v.begin(), v.end());
+    }
+
+    template <typename DType, typename RType>
+    auto taylor_polynomial(DType a, std::initializer_list<RType> l){
+        return taylor_polynomial(a, l.begin(), l.end());
+    }
+
+    // Typedefs for coefficients in floating point (real numbers)
+    using polynomial_float          = Polynomial<float>;
+    using polynomial_double         = Polynomial<double>;
+    using polynomial_long_double    = Polynomial<long double>;
+
+    // Typedefs for coefficients in complex numbers
+    using polynomial_complex_float          = Polynomial<std::complex<float>>;
+    using polynomial_complex_double         = Polynomial<std::complex<double>>;
+    using polynomial_complex_long_double    = Polynomial<std::complex<long double>>;
+
+    using polynomial = polynomial_double;
+
+}  // namespace fgs
