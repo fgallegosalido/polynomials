@@ -10,7 +10,7 @@ AllowShortFunctionsOnASingleLine          : Empty
 AllowShortIfStatementsOnASingleLine       : false
 AllowShortLoopsOnASingleLine              : false
 BreakConstructorInitializersBeforeComma   : true
-ColumnLimit                               : 120
+ColumnLimit                               : 100
 Cpp11BracedListStyle                      : true
 DerivePointerAlignment                    : true
 DerivePointerBinding                      : false
@@ -27,7 +27,7 @@ UseTab                                    : ForIndentation
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-
 AlwaysBreakTemplateDeclarations           : true #MultiLine
 SpaceBeforeParens                         : ControlStatements
-#SpaceBeforeRangeBasedForLoopColon        : true
+SpaceBeforeRangeBasedForLoopColon         : true
 SpaceInEmptyParentheses                   : false
 SpaceAfterTemplateKeyword                 : true
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-

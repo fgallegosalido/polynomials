@@ -17,18 +17,18 @@ typedef boost::mpl::list<float, double, long double, std::complex<float>,
 [[maybe_unused]] static constexpr std::size_t data = 100, lower_degree = 1, upper_degree = 4;
 
 template <typename T>
-inline constexpr auto low_b = fgs::aux::reduce_complex_t<T>(-1.0e+2);
+inline constexpr auto low_b = fgs::detail::reduce_complex_t<T>(-1.0e+2);
 template <typename T>
-inline constexpr auto up_b = fgs::aux::reduce_complex_t<T>(1.0e+2);
+inline constexpr auto up_b = fgs::detail::reduce_complex_t<T>(1.0e+2);
 
 // Tolerances for the tests to be passed
-inline constexpr float tolerance_f = 1.0e-2f;
+inline constexpr float tolerance_f = 1.0e-3f;
 inline constexpr double tolerance_d = 1.0e-11;
 inline constexpr long double tolerance_l = 1.0e-14l;
 
 std::mt19937 gen(std::random_device{}());
 template <typename T>
-inline static std::uniform_real_distribution<fgs::aux::reduce_complex_t<T>> unif(low_b<T>, up_b<T>);
+inline static std::uniform_real_distribution<fgs::detail::reduce_complex_t<T>> unif(low_b<T>, up_b<T>);
 
 template <typename InputIterator>
 void print_range(InputIterator first, InputIterator last, std::ostream& os = std::cout){
@@ -39,7 +39,7 @@ void print_range(InputIterator first, InputIterator last, std::ostream& os = std
 
 template <typename T>
 bool floating_point_comparison(const T& lhs, const T& rhs){
-    using FloatType = fgs::aux::reduce_complex_t<T>;
+    using FloatType = fgs::detail::reduce_complex_t<T>;
 
     if constexpr (std::is_same_v<float, FloatType>)
         return std::abs(lhs - rhs) < tolerance_f;
@@ -59,7 +59,7 @@ std::enable_if_t<std::is_arithmetic_v<T>> generate_vector(std::vector<T>& v){
 }
 
 template <typename T>
-std::enable_if_t<fgs::aux::is_complex_v<T>> generate_vector(std::vector<T>& v){
+std::enable_if_t<fgs::detail::is_complex_v<T>> generate_vector(std::vector<T>& v){
     std::generate(v.begin(), v.end(), [&](){
         return T(unif<T>(gen), unif<T>(gen));
     });
